@@ -1,0 +1,58 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--35e3b25f:171a8877f2e:-7ffa</id>
+  <name>nics_breadcrumbs</name>
+  <nativeName>nics_breadcrumbs</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--3512ed04:1587784b110:-7ffa</id>
+  </namespace>
+  <title>nics_breadcrumbs</title>
+  <keywords>
+    <string>features</string>
+    <string>nics_breadcrumbs</string>
+  </keywords>
+  <srs>EPSG:3857</srs>
+  <nativeBoundingBox>
+    <minx>-7919983.45767141</minx>
+    <maxx>-7919976.08832112</maxx>
+    <miny>5221755.39275247</miny>
+    <maxy>5221758.64910553</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-7919983.45767141</minx>
+    <maxx>-7919976.08832112</maxx>
+    <miny>5221755.39275247</miny>
+    <maxy>5221758.64910553</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>nics_breadcrumbs</name>
+        <sql>select username, description, timestamp, speed, course, ST_MakeLine(lag(location) over (order by timestamp), location) as segment, &apos;#&apos; || left(md5(username), 6) as color from mobiledevicetrack_log where username = &apos;%username%&apos; and timestamp&gt;= now()::date - interval &apos;%interval% hours&apos; order by timestamp desc
+</sql>
+        <escapeSql>false</escapeSql>
+        <parameter>
+          <name>interval</name>
+          <defaultValue>200</defaultValue>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <defaultValue>username@ll.mit.edu</defaultValue>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--35e3b25f:171a8877f2e:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

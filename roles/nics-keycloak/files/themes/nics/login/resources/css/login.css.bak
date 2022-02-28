@@ -1,0 +1,29 @@
+.login-pf body {
+    background-color: white;
+    background: none;
+    background-size: auto;
+}
+
+#kc-logo-wrapper {
+    background-image: none;
+}
+
+div.kc-logo-text {
+    background-image: none;
+}
+
+#kc-header {
+    color: black;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.login-pf-page .login-pf-page-header {
+  margin-bottom: 0px;
+}
+
+@media (min-width: 768px) {
+  .login-pf-page .login-pf-page-header {
+    margin-bottom: 0px;
+  }
+}

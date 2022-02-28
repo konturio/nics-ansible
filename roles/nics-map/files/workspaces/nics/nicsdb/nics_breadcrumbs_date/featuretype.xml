@@ -1,0 +1,62 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--35e3b25f:171a8877f2e:-7ff8</id>
+  <name>nics_breadcrumbs_date</name>
+  <nativeName>nics_breadcrumbs_date</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--3512ed04:1587784b110:-7ffa</id>
+  </namespace>
+  <title>nics_breadcrumbs_date</title>
+  <keywords>
+    <string>features</string>
+    <string>nics_breadcrumbs_date</string>
+  </keywords>
+  <srs>EPSG:3857</srs>
+  <nativeBoundingBox>
+    <minx>-7919983.45767141</minx>
+    <maxx>-7919976.08832112</maxx>
+    <miny>5221755.39275247</miny>
+    <maxy>5221758.64910553</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-7919983.45767141</minx>
+    <maxx>-7919976.08832112</maxx>
+    <miny>5221755.39275247</miny>
+    <maxy>5221758.64910553</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>nics_breadcrumbs_date</name>
+        <sql>select username, description, timestamp, speed, course, ST_MakeLine(lag(location) over (order by timestamp), location) as segment, &apos;#&apos; || left(md5(name), 6) as color from mobiledevicetrack_log where username=&apos;%username%&apos; and timestamp&gt;=&apos;%start%&apos; and timestamp&lt;=&apos;%end%&apos; order by timestamp desc
+</sql>
+        <escapeSql>false</escapeSql>
+        <parameter>
+          <name>start</name>
+          <defaultValue>2019-05-07</defaultValue>
+        </parameter>
+        <parameter>
+          <name>end</name>
+          <defaultValue>2025-05-07</defaultValue>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <defaultValue>username@domain.tld</defaultValue>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--35e3b25f:171a8877f2e:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

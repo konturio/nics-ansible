@@ -1,0 +1,120 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+
+  - name: Run Ubuntu Tasks
+    include: tasks-Ubuntu.yml
+    when: ansible_os_family == 'Ubuntu'
+
+  - name: Creates .m2 directory if necessary
+    file:
+      path: ~/.m2
+      state: directory
+      recurse: yes
+    become: no
+    tags:
+      - maven
+    
+  - name: add settings.xml to user maven folder, required for proxies and hibernate-spatial
+    template:
+      src: settings.xml.j2
+      dest: ~/.m2/settings.xml
+    become: no
+    tags:
+      - maven
+
+  - name: Creates source path directory
+    file:
+      path: "{{ nics_source_path }}"
+      state: directory
+      recurse: yes
+    become: no
+    tags: 
+      - maven
+
+  - name: Clone git repos
+    git:
+      repo: "{{ nics_git_repo_root }}/{{ item }}.git"
+      dest: "{{ nics_source_path }}/{{ item }}"
+      update: yes
+      force: yes
+      version: "{{ nics_git_repo_branch }}"
+    with_items: "{{ nics_repos }}"
+    become: no
+    tags:
+      - maven
+      - git
+
+  - name: Delete old ExtJS folder in iweb-modules
+    file:
+      state: absent
+      path: "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs"
+    tags:
+      - extjs
+
+  - name: Download ExtJS to iweb-modules
+    get_url:
+      url: "https://github.com/fwyzard/extjs/archive/aa5d9a027d419f53add60f57126d4154c1530521.zip"
+      dest: "{{ nics_source_path }}"
+      timeout: 1800
+      use_proxy: true 
+    tags:
+      - extjs
+      - extjs-download
+
+  - name: Unzip ExtJS to iweb-modules
+    unarchive:
+      src: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
+      dest: "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/"
+    tags:
+      - extjs
+
+  - name: Unzip ExtJS to node-modules
+    unarchive:
+      src: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
+      dest: "{{ nics_source_path }}/nics-web/"
+    tags:
+      - extjs
+
+  - name: Rename new ExtJS folder into iweb-modules
+    command: mv "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs-aa5d9a027d419f53add60f57126d4154c1530521" "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs"
+    tags:
+      - extjs
+
+  - name: Build repos
+    shell: mvn clean install -DskipTests >> ansible_mvn_build.txt
+    args:
+      chdir: "{{ nics_source_path }}/{{ item }}"
+    with_items: "{{ nics_repos }}"
+    become: no
+    tags:
+      - maven
+      - build

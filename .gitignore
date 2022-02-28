@@ -1,0 +1,29 @@
+### Ansible ###
+hosts
+hosts*
+roles/*/files/*.crt
+roles/*/files/*.pem
+roles/*/files/*.key
+roles/nics-keycloak/files/keycloak-*.tar.gz
+roles/nics-keycloak/files/postgresql-*.jar
+roles/nics-map/files/geoserver
+playbooks/playbook-*.yml
+vars/vars-*.yml
+vars/vault-*.yml
+.vault_pass.txt
+.vault_pass.yml
+*.retry
+.python-version
+.env
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+**/pytestdebug.log
+
+
+# DS_Store
+**/.DS_Store 

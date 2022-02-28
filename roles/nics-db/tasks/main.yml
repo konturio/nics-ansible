@@ -1,0 +1,168 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+- name: install PostgreSQL, PostGIS and psycopg2
+  apt:
+    name: ['postgresql-10','postgis','python-psycopg2']
+    state: present
+    update_cache: true
+
+- name: configure postgresql to allow all connections with password from samenet
+  lineinfile:
+    dest: /etc/postgresql/10/main/pg_hba.conf
+    line: 'host     all         {{ nics_db_username }}        samenet         md5'
+    state: present
+  when: nics_deploy_type == "distributed"
+  notify: restart postgresql
+
+- name: configure postgresql to allow all connections with password from the server
+  lineinfile:
+    dest: /etc/postgresql/10/main/pg_hba.conf
+    line: 'host     all         {{ nics_db_username }}        {{ ansible_default_ipv4.address }}/32         md5'
+    state: present
+  when: nics_deploy_type == "single-server"
+  notify: restart postgresql
+
+- name: configure postgresql to listen for requests from data and mapserver
+  lineinfile:
+    dest: /etc/postgresql/10/main/postgresql.conf
+    regexp: '^listen_addresses'
+    line: "listen_addresses = '*'"
+  notify: restart postgresql
+
+- name: configure postgresql to allow local access db user
+  lineinfile:
+    dest: /etc/postgresql/10/main/pg_hba.conf
+    line: 'local     all        {{ nics_db_username }}              trust'
+    insertafter: '^#?local \s+ all \s+ postgres \s+ peer'
+    state: present
+  notify: restart postgresql
+
+- meta: flush_handlers
+
+- name: Ensure the PostgreSQL service is running
+  service:
+    name: postgresql
+    state: started
+    use: sysvinit
+
+- name: add the user to the application database
+  postgresql_user:
+    name: '{{ nics_db_username }}'
+    password: '{{ nics_db_password }}'
+    encrypted: true
+  become_user: postgres
+  become: true
+  tags: postgres-user-add
+
+- name: create project directory
+  file:
+    path: "{{ nics_home_directory }}/nics-db"
+    state: directory
+
+- name: unarchive the database
+  unarchive:
+    src: "{{ nics_db_home }}/target/nics-db-7.0.9-SNAPSHOT-archive.tar.gz"
+    dest:  "{{ nics_home_directory }}/nics-db"
+    owner: postgres
+    group: postgres
+
+- name: check for the database
+  postgresql_db:
+    name: "{{ nics_db_name }}"
+  check_mode: true
+  register: nics_pg_db_check
+  become: true
+  become_user: postgres
+
+- name: create the database
+  shell: './create_db.sh {{ nics_db_name }} {{ nics_db_username }}'
+  args:
+    chdir:  "{{ nics_home_directory }}/nics-db"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: create the data databases
+  shell: './create_data_dbs.sh {{ nics_db_name }}'
+  args:
+    chdir:  "{{ nics_home_directory }}/nics-db"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: create the workspace
+  shell: './create_workspace.sh {{ nics_db_name }} 1 Workspace'
+  args:
+    chdir:  "{{ nics_home_directory }}/nics-db/scripts/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: create org
+  shell: './create_org.sh {{ nics_db_name }} Org County MA org 2'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/scripts/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: create user
+  shell: './create_default_user.sh {{ nics_db_name }} {{ nics_intial_nics_account }} 1 1'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/scripts/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: create folders
+  shell: './create_default_folders.sh {{ nics_db_name }} 1'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/scripts/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: "create map layers"
+  shell: './maps_layers.sh {{ nics_db_name }}'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/Change/archive/datalayers/maps/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: run 7.0.9 Change script
+  shell: './7.0.9-changes.sh {{ nics_db_name }} {{ nics_intial_nics_account }}'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/Change/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed

@@ -1,0 +1,11 @@
+[
+        { "code": "en", "language" : "English", "default" : true, "selectAnOrg" : "Select an organization for this session"},
+	{ "code": "hrv", "language" : "Croatian", "default" : false, "selectAnOrg": "Odaberite organizaciju za ovu sesiju"},
+	{ "code": "ro", "language" : "Romanian", "default" : false, "selectAnOrg": "Alege organizatie pt sesiunea curenta"},
+	{ "code": "mk", "language" : "Macedonia", "default" : false, "selectAnOrg": "Select an organization for this session"},
+	{ "code": "bih", "language" : "Bosnia", "default" : false, "selectAnOrg": "Odaberite organizaciju za ovu sesiju"},
+	{ "code": "es", "language" : "Spanish", "default" : false, "selectAnOrg": "Seleccionar una organización para esta sesión"},
+	{ "code": "srb", "language" : "Serbian", "default" : false, "selectAnOrg": "Одаберите организацију за ову сесију"},
+	{ "code": "mne", "language" : "Montenegro", "default" : false, "selectAnOrg": "Odaberite organizaciju za ovu sesiju"}
+]
+

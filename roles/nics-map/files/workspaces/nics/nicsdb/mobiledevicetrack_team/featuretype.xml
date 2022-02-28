@@ -1,0 +1,58 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--35e3b25f:171a8877f2e:-7ffc</id>
+  <name>mobiledevicetrack_team</name>
+  <nativeName>mobiledevicetrack_team</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--3512ed04:1587784b110:-7ffa</id>
+  </namespace>
+  <title>mobiledevicetrack_team</title>
+  <keywords>
+    <string>features</string>
+    <string>mobiledevicetrack_team</string>
+  </keywords>
+  <srs>EPSG:3857</srs>
+  <nativeBoundingBox>
+    <minx>-7919981.41864931</minx>
+    <maxx>-7919979.41864931</maxx>
+    <miny>5221755.53850619</miny>
+    <maxy>5221757.53850619</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-7919981.41864931</minx>
+    <maxx>-7919979.41864931</maxx>
+    <miny>5221755.53850619</miny>
+    <maxy>5221757.53850619</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>mobiledevicetrack_team</name>
+        <sql>select * from mobiledevicetrack_view where workspaceId=%workspaceid% and username in (%username%)
+</sql>
+        <escapeSql>false</escapeSql>
+        <parameter>
+          <name>workspaceid</name>
+          <defaultValue>1</defaultValue>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <defaultValue>&apos;username@domain.tld&apos;</defaultValue>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--35e3b25f:171a8877f2e:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

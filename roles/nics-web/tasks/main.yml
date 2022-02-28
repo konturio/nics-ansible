@@ -1,0 +1,239 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+#tasks file for nics-web
+
+- name: copy OIDCHTMLErrorTemplate
+  template:
+    src: OIDCHTMLErrorTemplate.html
+    dest: /var/www/html/OIDCHTMLErrorTemplate.html
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  notify: reload apache2
+
+- name: setup apache2 site
+  template:
+    src: nics-web.conf
+    dest: /etc/apache2/sites-available/nics-web.conf
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+  tags: apache_config
+
+- name: setup apache2 site for single server
+  template:
+    src: nics-single-server.conf
+    dest: /etc/apache2/sites-available/nics-single-server.conf
+  notify: restart apache2
+  when: nics_deploy_type == "single-server"
+
+- name: ensure certs directory exists
+  file:
+    path: "{{ nics_sslcertificates_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: nics_deploy_type == "distributed"
+
+- name: copy cert private key into place
+  copy:
+    src: "{{ nics_web_sslcertificatekeyfile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatekeyfile }}"
+    owner: root
+    group: root
+    mode: 0750
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool)
+
+- name: copy cert public into place
+  copy:
+    src: "{{ nics_web_sslcertificatefile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatefile }}"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool)
+
+- name: install python-openssl for self-signed certificate generation
+  apt:
+    name: python-openssl
+    state: present
+  when: nics_use_self_signed_certs|bool
+
+- name: generate a private key
+  openssl_privatekey:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatekeyfile }}"
+    force: false
+  notify: restart apache2
+  when: nics_use_self_signed_certs|bool
+
+- name: generate a csr
+  openssl_csr:
+    path: "{{ nics_sslcertificates_path }}/server.csr"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatekeyfile }}"
+    common_name: "{{ nics_alias_fqdn }}"
+    force: false
+  notify: restart apache2
+  when: nics_use_self_signed_certs|bool
+
+- name: generate a self-signed openssl certificate
+  openssl_certificate:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatefile }}"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatekeyfile }}"
+    csr_path: "{{ nics_sslcertificates_path }}/server.csr"
+    provider: selfsigned
+    force: false
+  notify: restart apache2
+  when: nics_use_self_signed_certs|bool
+
+- name: Delete api cert into java keystore
+  shell: >
+    source /etc/profile &&
+    keytool -delete
+    -alias {{ nics_alias_fqdn }}
+    -keystore $JAVA_HOME/jre/lib/security/cacerts
+    -storepass changeit
+  args:
+    executable: /bin/bash
+  ignore_errors: yes
+  when: nics_use_self_signed_certs and nics_deploy_type == 'single-server'
+
+- name: Import api cert into java keystore
+  shell: >
+    source /etc/profile &&
+    keytool -import -noprompt -trustcacerts
+    -alias {{ nics_alias_fqdn }}
+    -file "{{ nics_sslcertificates_path }}/{{ nics_web_sslcertificatefile }}"
+    -keystore $JAVA_HOME/jre/lib/security/cacerts
+    -storepass changeit
+  args:
+    executable: /bin/bash
+  when: (nics_use_self_signed_certs|bool)and nics_deploy_type == 'single-server'
+
+- name: enable apache2 site
+  file:
+    src: /etc/apache2/sites-available/nics-web.conf
+    dest: /etc/apache2/sites-enabled/nics-web.conf
+    state: link
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+
+- name: enable apache2 site for single-server
+  file:
+    src: /etc/apache2/sites-available/nics-single-server.conf
+    dest: /etc/apache2/sites-enabled/nics-single-server.conf
+    state: link
+  notify: restart apache2
+  when: nics_deploy_type == "single-server"
+
+- name: install rabbitmq
+  apt:
+    name: rabbitmq-server
+    state: present
+
+- name: setup rabbitmq configuration file
+  template:
+    src: "rabbitmq.config"
+    dest: "/etc/rabbitmq/rabbitmq.config"
+    owner: rabbitmq
+    group: rabbitmq
+    mode: u=rw,g=r,o=
+  notify: restart rabbitmq
+
+- meta: flush_handlers
+
+- name: create nics config directory
+  file:
+    path: "{{nics_home_directory }}/config"
+    state: directory
+    owner: root
+    group: tomcat8
+    mode: u=rwx,g=rx,o=
+
+- name: setup nics config file
+  template:
+    src: core.properties
+    dest: "{{ nics_home_directory }}/config/core.properties"
+    owner: root
+    group: tomcat8
+    mode: u=rwx,g=rx,o=
+  notify: restart tomcat8
+
+- name: copy web.xml in place
+  template:
+    src: web.xml
+    dest: /etc/tomcat8/web.xml
+    owner: root
+    group: tomcat8
+    mode: u=rw,g=r,o=
+  notify: restart tomcat8
+
+- name: copy nics.war into place
+  copy:
+    src: "{{ nics_web_home }}/webapp/target/nics.war"
+    dest: /var/lib/tomcat8/webapps/nics.war
+  notify: restart tomcat8
+
+- name: set JAVA_OPTS
+  lineinfile:
+    dest: /etc/default/tomcat8
+    state: present
+    regexp: '^JAVA_OPTS'
+    line: "JAVA_OPTS=\"-Xms{{ (ansible_memtotal_mb * 0.5) | int }}m -Xmx{{ (ansible_memtotal_mb * 0.5) | int }}m -Djava.awt.headless=true -XX:+UseParallelGC -XX:SoftRefLRUPolicyMSPerMB=36000\""
+  notify: restart tomcat8
+  when: nics_deploy_type == "distributed"
+
+- name: set JAVA_OPTS
+  lineinfile:
+    dest: /etc/default/tomcat8
+    state: present
+    regexp: '^JAVA_OPTS'
+    line: "JAVA_OPTS=\"-Xms{{ (ansible_memtotal_mb * 0.5) | int }}m -Xmx{{ (ansible_memtotal_mb * 0.5) | int }}m -Djava.awt.headless=true -XX:+UseParallelGC -XX:SoftRefLRUPolicyMSPerMB=36000 -Xbootclasspath/a:/usr/local/share/marlin/marlin-0.9.3-Unsafe.jar -Xbootclasspath/a:/usr/local/share/marlin/marlin-0.9.3-Unsafe-sun-java2d.jar -Dsun.java2d.renderer=org.marlin.pisces.MarlinRenderingEngine -Dorg.geotools.coverage.jaiext.enabled=true -DGEOSERVER_DATA_DIR={{ nics_home_directory }}/geoserver\""
+  notify: restart tomcat8
+  when: nics_deploy_type == "single-server"
+
+- name: create .well-known folder
+  file:
+    path: /var/www/html/.well-known
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+
+- name: add host-meta.json
+  template:
+    src: host-meta.json
+    dest: /var/www/html/.well-known
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r

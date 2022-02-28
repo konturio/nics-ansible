@@ -1,0 +1,18 @@
+<script>
+    var err="%s";
+    var desc="%s";
+    
+    function reload() {
+    //        document.getElementById("err").innerHTML=err;
+    //        document.getElementById("desc").innerHTML=desc;
+    
+    //        if (err=="Invalid Authentication Response" || err == "OpenID Connect Provider error: Error in handling response type.") {
+                    location.reload();
+    //        }
+    }
+    function redirect() {
+        window.location.replace("https://{{ nics_alias_fqdn }}/sso/redirect_uri?logout=https://{{ nics_alias_fqdn }}");
+    }
+</script>
+<body onload="redirect()">
+    

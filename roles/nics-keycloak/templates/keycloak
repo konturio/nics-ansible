@@ -1,0 +1,29 @@
+## {{ ansible_managed }}
+## Location of Java JDK is JAVA_HOME is not in /etc/environment
+#JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-amd64"
+ 
+## Java Options
+JAVA_OPTS="-Xms1024m -Xmx1024m"
+
+## Update '-Xms' and '-Xmx' to be half the memory available on your server if it's dedicated to only serving Keycloak.
+## You will want to reduce it if you are running PostgreSQL on the same server or other Java processes using garbage collection.
+## '-Xs' can be removed if you'd like the server to start quickly for development but it's not best practice for running in production since it will stutter when increasing heap size.
+## Location of Keycloak
+JBOSS_HOME="{{ nics_keycloak_home }}"
+ 
+#JBOSS_BIND="127.0.0.1"
+# Use 0.0.0.0 for clusters
+JBOSS_BIND="0.0.0.0"
+ 
+## The mode Keycloak should start, standalone or domain in lowercase
+JBOSS_MODE=standalone
+ 
+## Configuration for standalone mode
+JBOSS_CONFIG=standalone.xml
+ 
+## Configuration for domain mode
+# JBOSS_DOMAIN_CONFIG=domain.xml
+# JBOSS_HOST_CONFIG=host-master.xml
+ 
+## Additional args to include at startup to Keycloak
+JBOSS_OPTS="-Dkeycloak.profile=preview"

@@ -1,0 +1,277 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+# tasks file for nics-map
+
+- name: setup apache2 site
+  template:
+    src: nics-map.conf
+    dest: /etc/apache2/sites-available/nics-map.conf
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+  tags: apache_config
+
+- name: ensure certs directory exists
+  file:
+    path: "{{ nics_sslcertificates_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: nics_deploy_type == "distributed"
+
+- name: copy cert private key into place
+  copy:
+    src: "{{ nics_map_sslcertificatekeyfile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_map_sslcertificatekeyfile }}"
+    owner: root
+    group: root
+    mode: 0750
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool) and nics_deploy_type == "distributed"
+
+- name: copy cert public into place
+  copy:
+    src: "{{ nics_map_sslcertificatefile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_map_sslcertificatefile }}"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool) and nics_deploy_type == "distributed"
+
+- name: install python-openssl for self-signed certificate generation
+  apt:
+    name: python-openssl
+    state: present
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a private key
+  openssl_privatekey:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_map_sslcertificatekeyfile }}"
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a csr
+  openssl_csr:
+    path: "{{ nics_sslcertificates_path }}/server.csr"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_map_sslcertificatekeyfile }}"
+    common_name: "{{ nics_map_fqdn }}"
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a self-signed openssl certificate
+  openssl_certificate:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_map_sslcertificatefile }}"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_map_sslcertificatekeyfile }}"
+    csr_path: "{{ nics_sslcertificates_path }}/server.csr"
+    provider: selfsigned
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: enable apache2 site
+  file:
+    src: /etc/apache2/sites-available/nics-map.conf
+    dest: /etc/apache2/sites-enabled/nics-map.conf
+    state: link
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+
+- name: check for a previously deployed geoserver
+  stat:
+    path: /var/lib/tomcat8/webapps/geoserver.war
+  register: geoserver_war
+
+- name: create geoserver download folder
+  file:
+    path: "{{ nics_geoserver_download_path }}/geoserver"
+    state: directory
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+
+- name: check if geoserver zip is already downloaded on ansible controller
+  stat:
+    path: "{{ nics_geoserver_download_path }}/geoserver/geoserver-{{ nics_geoserver_version }}-war.zip"
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  register: nics_geoserver_downloaded_zip
+  when: not geoserver_war.stat.exists
+
+- name: download geoserver zip on ansible controller
+  get_url:
+    url: "https://sourceforge.net/projects/geoserver/files/GeoServer/{{ nics_geoserver_version }}/geoserver-{{ nics_geoserver_version }}-war.zip"
+    dest: "{{ nics_geoserver_download_path }}/geoserver"
+    timeout: 1800
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  when: not geoserver_war.stat.exists and not nics_geoserver_downloaded_zip.stat.exists
+
+- name: install unzip
+  apt:
+    name: unzip
+    state: present
+
+- name: unzip geoserver zip
+  unarchive:
+    src: "{{ nics_geoserver_download_path }}/geoserver/geoserver-{{ nics_geoserver_version }}-war.zip"
+    dest: "{{ nics_geoserver_download_path }}/geoserver"
+    creates: "{{ nics_geoserver_download_path }}/geoserver/geoserver.war"
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  when: not geoserver_war.stat.exists
+
+- name: unzip geoserver war
+  unarchive:
+    src: "{{ nics_geoserver_download_path }}/geoserver/geoserver.war"
+    dest: "{{ nics_geoserver_download_path }}/geoserver"
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  when: not geoserver_war.stat.exists
+
+- name: create geoserver data directory
+  file:
+    path: "{{ nics_home_directory }}/geoserver"
+    state: directory
+    owner: tomcat8
+    group: tomcat8
+    mode: u=rwX,g=rX,o=
+
+- name: purge workspaces
+  file:
+    path: "{{ nics_geoserver_download_path }}/geoserver/data/workspaces/{{ item }}/"
+    state: absent
+  with_items:
+   - cite
+   - it.geosolutions
+   - nurc
+   - sde
+   - sf
+   - tiger
+   - topp
+
+- name: copy geoserver data directory
+  synchronize:
+    src: "{{ nics_geoserver_download_path }}/geoserver/data/"
+    dest: "{{ nics_home_directory }}/geoserver/"
+  when: not geoserver_war.stat.exists
+
+- name: copy styles
+  copy:
+    src: styles
+    dest: "{{ nics_home_directory }}/geoserver/"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: copy workspace config files
+  copy:
+    src: workspaces
+    dest: "{{ nics_home_directory }}/geoserver/"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: configure collab-feed store
+  template:
+    src: nics-collabfeed-datastore.xml
+    dest: "{{ nics_home_directory }}/geoserver/workspaces/nics.collaborationfeed/nics/datastore.xml"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: configure shapefile store
+  template:
+    src: nics-shapefiles-datastore.xml
+    dest: "{{ nics_home_directory }}/geoserver/workspaces/nics/shapefiles/datastore.xml"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: configure nicsdb store
+  template:
+    src: nicsdb-datastore.xml
+    dest: "{{ nics_home_directory }}/geoserver/workspaces/nics/nicsdb/datastore.xml"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: deploy geoserver war file
+  copy:
+    src: "{{ nics_geoserver_download_path }}/geoserver/geoserver.war"
+    dest: /var/lib/tomcat8/webapps/geoserver.war
+  when: not geoserver_war.stat.exists
+  notify: restart tomcat8
+
+- name: set geoserver admin password
+  replace:
+    dest: '{{ nics_home_directory }}/geoserver/security/usergroup/default/users.xml'
+    regexp: 'password=".*"'
+    replace: 'password="plain:{{ nics_geoserver_password }}"'
+  notify: restart tomcat8
+
+- name: update ownership on geoserver data directory
+  file:
+    path: "{{ nics_home_directory }}/geoserver"
+    state: directory
+    owner: tomcat8
+    group: tomcat8
+    mode: u=rwX,g=rX,o=
+    recurse: true
+
+- name: copy marlin libraries
+  copy:
+    src: marlin
+    dest: /usr/local/share
+    owner: root
+    group: root
+    mode: u=rwX,g=rX,o=rX
+
+- name: set JAVA_OPTS
+  lineinfile:
+    dest: /etc/default/tomcat8
+    state: present
+    regexp: '^JAVA_OPTS'
+    line: "JAVA_OPTS=\"-Xms{{ (ansible_memtotal_mb * 0.5) | int }}m -Xmx{{ (ansible_memtotal_mb * 0.5) | int }}m -Djava.awt.headless=true -XX:+UseParallelGC -XX:SoftRefLRUPolicyMSPerMB=36000 -Xbootclasspath/a:/usr/local/share/marlin/marlin-0.9.3-Unsafe.jar -Xbootclasspath/a:/usr/local/share/marlin/marlin-0.9.3-Unsafe-sun-java2d.jar -Dsun.java2d.renderer=org.marlin.pisces.MarlinRenderingEngine -DGEOSERVER_CSRF_WHITELIST={{ nics_alias_fqdn }} -Dorg.geotools.coverage.jaiext.enabled=true -DGEOSERVER_DATA_DIR={{ nics_home_directory }}/geoserver\""
+  notify: restart tomcat8
+  when: nics_deploy_type == "distributed"

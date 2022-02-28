@@ -1,0 +1,460 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+# tasks file for nics-keycloak
+
+- name: install PostgreSQL, PostGIS and psycopg2
+  apt:
+    name: ['postgresql-10', 'python-psycopg2', 'postgresql-client']
+    state: present
+    update_cache: true
+  when: nics_keycloak_use_postgresql
+
+- name: configure postgresql to allow local access db user
+  lineinfile:
+    dest: /etc/postgresql/10/main/pg_hba.conf
+    line: 'local     all        {{ nics_keycloak_db_username }}              trust'
+    insertafter: '^#?local \s+ all \s+ postgres \s+ peer'
+    state: present
+  notify: restart postgresql
+  when: nics_keycloak_use_postgresql
+
+- name: configure postgresql to allow all connections with password from the server
+  lineinfile:
+    dest: /etc/postgresql/10/main/pg_hba.conf
+    line: 'host     all         {{ nics_keycloak_db_username }}        {{ ansible_default_ipv4.address }}/32         md5'
+    state: present
+  when: nics_keycloak_use_postgresql
+
+- meta: flush_handlers
+
+- name: ensure the PostgreSQL service is running
+  service:
+    name: postgresql
+    state: started
+    use: sysvinit
+
+- name: create keycloak db
+  postgresql_db:
+    name: "{{ nics_keycloak_db_name }}"
+  become_user: postgres
+  become: true
+  when: nics_keycloak_use_postgresql
+
+- name: add the keycloak user to the db
+  postgresql_user:
+    name: '{{ nics_keycloak_db_username }}'
+    password: '{{ nics_keycloak_db_password }}'
+    encrypted: true
+  become_user: postgres
+  become: true
+  when: nics_keycloak_use_postgresql
+
+- name: create keycloak group
+  group:
+    name: keycloak
+    system: true
+
+- name: create keycloak user
+  user:
+    name: keycloak
+    group: keycloak
+    create_home: false
+    shell: /bin/bash
+    system: true
+    home: "{{ nics_keycloak_home }}"
+
+- name: check if keycloak is installed
+  stat:
+    path: "{{ nics_keycloak_home }}/version.txt"
+  register: nics_keycloak_version_installed
+
+- name: check if keycloak tar.gz is already downloaded on ansible controller
+  stat:
+    path: "{{ nics_keycloak_download_path }}/{{ nics_keycloak_download_filename }}"
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  register: nics_keycloak_downloaded_file
+  when: not nics_keycloak_version_installed.stat.exists
+
+- name: download keycloak tar.gz on ansible controller
+  get_url:
+    url: "{{ nics_keycloak_download_url }}"
+    dest: "{{ nics_keycloak_download_path }}"
+    checksum: "sha1:{{ nics_keycloak_download_sha1 }}"
+    timeout: 1800
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  when: not nics_keycloak_version_installed.stat.exists and not nics_keycloak_downloaded_file.stat.exists
+
+- name: create keycloak folder
+  file:
+    path: "{{ nics_keycloak_home }}"
+    state: directory
+    owner: keycloak
+    group: keycloak
+    mode: u=rwX,g=rX,o=
+  when: not nics_keycloak_version_installed.stat.exists
+
+- name: extract keycloak to server
+  unarchive:
+    src: "{{ nics_keycloak_download_path }}/{{ nics_keycloak_download_filename }}"
+    dest: "{{ nics_keycloak_home }}"
+    owner: keycloak
+    group: keycloak
+    mode: u=rwX,g=rX,o=
+    extra_opts: [--strip-components=1]
+  when: not nics_keycloak_version_installed.stat.exists
+
+- name: copy nics keycloak theme to server
+  copy:
+    src: "{{ nics_keycloak_download_path }}/themes"
+    dest: "{{ nics_keycloak_home }}"
+  when: not nics_keycloak_version_installed.stat.exists
+
+- name: create keycloak launch.sh
+  template:
+    src: launch.sh
+    dest: "{{ nics_keycloak_home }}/bin/launch.sh"
+    owner: keycloak
+    group: keycloak
+    mode: 0750
+  notify: restart keycloak
+
+- name: create keycloak systemd unit file
+  template:
+    src: keycloak.service
+    dest: /etc/systemd/system/keycloak.service
+    owner: root
+    group: root
+  notify: restart keycloak
+
+- name: create keycloak defaults
+  template:
+    src: keycloak
+    dest: /etc/default/keycloak
+    owner: root
+    group: root
+  notify: restart keycloak
+
+- name: download jdbc driver
+  get_url:
+    url: https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
+    dest: "{{ nics_keycloak_download_path }}"
+    timeout: 1800
+  delegate_to: localhost
+  delegate_facts: true
+  become: false
+  when: nics_keycloak_use_postgresql
+  notify: restart keycloak
+
+- name: create jdbc driver folder
+  file:
+    path: "{{ nics_keycloak_home }}/modules/system/layers/keycloak/org/postgresql/main"
+    state: directory
+    owner: keycloak
+    group: keycloak
+    mode: u=rwX,g=rX,o=
+  when: nics_keycloak_use_postgresql
+  notify: restart keycloak
+
+- name: copy jdbc driver to server
+  copy:
+    src: postgresql-42.2.5.jar
+    dest: "{{ nics_keycloak_home }}/modules/system/layers/keycloak/org/postgresql/main/postgresql-42.2.5.jar"
+    owner: keycloak
+    group: keycloak
+    mode: 0640
+  when: nics_keycloak_use_postgresql
+  notify: restart keycloak
+
+- name: copy jdbc module.xml to server
+  copy:
+    src: module.xml
+    dest: "{{ nics_keycloak_home }}/modules/system/layers/keycloak/org/postgresql/main/module.xml"
+    owner: keycloak
+    group: keycloak
+    mode: 0640
+  when: nics_keycloak_use_postgresql
+  notify: restart keycloak
+
+- name: copy standalone.xml to server
+  template:
+    src: standalone.xml
+    dest: "{{ nics_keycloak_home }}/standalone/configuration/standalone.xml"
+    owner: keycloak
+    group: keycloak
+    mode: 0640
+  notify: restart keycloak
+
+- name: add default ip address found as hostname entry in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: "{{ ansible_default_ipv4.address }}\t{{ ansible_hostname }}"
+    line: "{{ ansible_default_ipv4.address }}\t{{ ansible_hostname }}"
+    insertafter: "127.0.0.1 localhost"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart keycloak
+
+- name: create /var/log/keycloak
+  file:
+    path: /var/log/keycloak
+    state: directory
+    owner: keycloak
+    group: keycloak
+    mode: 0750
+
+- name: symbolicly link /var/log/keycloak to /opt/keycloak/standalone/log
+  file:
+    src: /var/log/keycloak
+    dest: /opt/keycloak/standalone/log
+    state: link
+
+- name: ensure keycloak folder permissions
+  file:
+    path: "{{ nics_keycloak_home }}"
+    state: directory
+    owner: keycloak
+    group: keycloak
+    mode: u=rwX,g=rX,o=
+    recurse: true
+
+- name: install apache2
+  apt:
+    name: apache2
+    state: present
+    update_cache: true
+
+- name: create ssl certs directory
+  file:
+    path: "{{ nics_sslcertificates_path }}"
+    state: directory
+    owner: root
+    group: root
+
+- name: enable apache2 Mods
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - proxy
+    - proxy_http
+    - proxy_wstunnel
+    - rewrite
+    - headers
+    - ssl
+    - http2
+  notify: restart apache2
+
+- name: disable apache default site
+  file:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+  notify: reload apache2
+
+- name: disable apache index.html
+  file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: copy security.conf
+  copy:
+    src: security.conf
+    dest: /etc/apache2/conf-available/security.conf
+  notify: reload apache2
+
+- name: setup apache2 site
+  template:
+    src: nics-keycloak.conf
+    dest: /etc/apache2/sites-available/nics-keycloak.conf
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+  tags: apache_config
+
+- name: ensure certs directory exists
+  file:
+    path: "{{ nics_sslcertificates_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: nics_deploy_type == "distributed"
+
+- name: copy cert private key into place
+  copy:
+    src: "{{ nics_keycloak_sslcertificatekeyfile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_keycloak_sslcertificatekeyfile }}"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool) and nics_deploy_type == "distributed"
+
+- name: copy cert public into place
+  copy:
+    src: "{{ nics_keycloak_sslcertificatefile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_keycloak_sslcertificatefile }}"
+    owner: root
+    group: root
+    mode: 0750
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool) and nics_deploy_type == "distributed"
+
+- name: install python-openssl for self-signed certificate generation
+  apt:
+    name: python-openssl
+    state: present
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a private key
+  openssl_privatekey:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_keycloak_sslcertificatekeyfile }}"
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a csr
+  openssl_csr:
+    path: "{{ nics_sslcertificates_path }}/server.csr"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_keycloak_sslcertificatekeyfile }}"
+    common_name: "{{ nics_data_fqdn }}"
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a self-signed openssl certificate
+  openssl_certificate:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_keycloak_sslcertificatefile }}"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_keycloak_sslcertificatekeyfile }}"
+    csr_path: "{{ nics_sslcertificates_path }}/server.csr"
+    provider: selfsigned
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: enable apache2 site
+  file:
+    src: /etc/apache2/sites-available/nics-keycloak.conf
+    dest: /etc/apache2/sites-enabled/nics-keycloak.conf
+    state: link
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+
+- name: enable security conf
+  file:
+    src: /etc/apache2/conf-available/security.conf
+    dest: /etc/apache2/conf-enabled/security.conf
+    state: link
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+
+- name: add master realm user
+  shell: "source /etc/default/keycloak && ./bin/add-user-keycloak.sh -r master -u {{ nics_keycloak_initial_master_realm_username }} -p {{ nics_keycloak_initial_master_realm_password }}"
+  args:
+    chdir: "{{ nics_keycloak_home }}"
+    creates: "{{ nics_keycloak_home }}/standalone/configuration/keycloak-add-user.json"
+    executable: /bin/bash
+  when: not nics_keycloak_version_installed.stat.exists
+  become: true
+  become_user: keycloak
+  notify: restart keycloak
+  tags:
+    - add_master_realm_user
+
+- meta: flush_handlers
+
+- name: ensure the keycloak service is running
+  service:
+    name: keycloak
+    state: started
+
+- name: wait 5 seconds for keycloak to start
+  pause:
+    seconds: 5
+
+- name: copy nics realm template
+  template:
+    src: NICS-REALM.json
+    dest: "{{ nics_keycloak_home }}/NICS-REALM.json"
+    owner: keycloak
+    group: keycloak
+  when: not nics_keycloak_version_installed.stat.exists
+
+- name: create nics realm
+  shell: "source /etc/default/keycloak && ./bin/kcadm.sh create realms -f {{ nics_keycloak_home }}/NICS-REALM.json --no-config --server http://localhost:8081/auth --realm master --user {{ nics_keycloak_initial_master_realm_username }} --password {{ nics_keycloak_initial_master_realm_password }}"
+  args:
+    chdir: "{{ nics_keycloak_home }}"
+    executable: /bin/bash
+  when: not nics_keycloak_version_installed.stat.exists
+  become: true
+  become_user: keycloak
+  register: nics_keycloak_check_nics_realm
+  tags:
+    - create_nics_realm
+
+- name: set nics realm admin password
+  shell: "source /etc/default/keycloak && ./bin/add-user-keycloak.sh -r {{ nics_keycloak_realm }} -u {{ nics_keycloak_nics_realm_admin }} -p {{ nics_keycloak_nics_realm_admin_password }}"
+  args:
+    chdir: "{{ nics_keycloak_home }}"
+    creates: "{{ nics_keycloak_home }}/standalone/configuration/keycloak-add-user.json"
+    executable: /bin/bash
+  when: not nics_keycloak_version_installed.stat.exists
+  become: true
+  become_user: keycloak
+  notify: restart keycloak
+  tags:
+    - add_nics_realm_user
+
+- name: add initial nics first user
+  shell: "source /etc/default/keycloak && ./bin/kcadm.sh create users -r {{ nics_keycloak_realm }} -s username={{ nics_intial_nics_account }} -s email={{ nics_intial_nics_account }} -s emailVerified=true -s enabled=true --no-config --server http://localhost:8081/auth --realm master --user {{ nics_keycloak_initial_master_realm_username }} --password {{ nics_keycloak_initial_master_realm_password }}"
+  args:
+    chdir: "{{ nics_keycloak_home }}"
+    executable: /bin/bash
+  when: not nics_keycloak_version_installed.stat.exists
+  become: true
+  become_user: keycloak
+  tags:
+    - add_initial_nics_user
+
+- name: set initial nics first user password
+  shell: "source /etc/default/keycloak && ./bin/kcadm.sh set-password -r {{ nics_keycloak_realm }} --username={{ nics_intial_nics_account }} --new-password {{ nics_intial_nics_password }}  --no-config --server http://localhost:8081/auth --realm master --user {{ nics_keycloak_initial_master_realm_username }} --password {{ nics_keycloak_initial_master_realm_password }}"
+  args:
+    chdir: "{{ nics_keycloak_home }}"
+    executable: /bin/bash
+  when: not nics_keycloak_version_installed.stat.exists
+  become: true
+  become_user: keycloak
+  tags:
+    - add_initial_nics_user_password

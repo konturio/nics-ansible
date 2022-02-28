@@ -1,0 +1,17 @@
+<layer>
+  <name>nics_breadcrumbs_date</name>
+  <id>LayerInfoImpl--35e3b25f:171a8877f2e:-7ff7</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-37b18cc6:14d5d036d48:-8000</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--35e3b25f:171a8877f2e:-7ff8</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-04-23 20:04:21.422 UTC</dateCreated>
+  <dateModified>2020-05-18 13:22:35.68 UTC</dateModified>
+</layer>

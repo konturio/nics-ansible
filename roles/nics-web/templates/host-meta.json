@@ -1,0 +1,37 @@
+{
+    "properties":{
+      "http://nics.ll.mit.edu/version":"1.0"
+    },
+  
+    "links":[
+      {
+        "rel":"web",
+        "href":"https://{{ nics_alias_fqdn }}/nics/",
+        "titles":{
+          "default":"NICS Web Application Root"
+        }
+      },
+      {
+        "rel":"api",
+        "href":"https://{{ nics_data_fqdn }}/api/v1/",
+        "titles":{
+          "default":"NICS API Root"
+        }
+      },
+      {
+        "rel":"map",
+        "href":"https://{{ nics_map_fqdn }}/geoserver/",
+        "titles":{
+          "default":"NICS Geoserver root"
+        }
+      },
+      {
+        "rel":"identity",
+        "href":"https://{{ nics_keycloak_fqdn }}/auth/realms/NICS",
+        "titles":{
+          "default":"NICS Identity Server Root"
+        }
+      }
+    ]
+  }
+  

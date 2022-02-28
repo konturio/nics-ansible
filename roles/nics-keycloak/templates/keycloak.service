@@ -1,0 +1,17 @@
+[Unit]
+Description=Keycloak Server
+After=syslog.target network.target
+Before=apache2.service
+ 
+[Service]
+Environment=LAUNCH_JBOSS_IN_BACKGROUND=1
+EnvironmentFile=-/etc/default/keycloak
+WorkingDirectory={{ nics_keycloak_home }}
+User=keycloak
+Group=keycloak
+LimitNOFILE=102642
+ExecStart={{ nics_keycloak_home }}/bin/launch.sh $JBOSS_MODE $JBOSS_CONFIG $JBOSS_BIND
+StandardOutput=null
+ 
+[Install]
+WantedBy=multi-user.target

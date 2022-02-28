@@ -1,0 +1,269 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+- name: setup apache2 site
+  template:
+    src: nics-data.conf
+    dest: /etc/apache2/sites-available/nics-data.conf
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+
+- name: ensure certs directory exists
+  file:
+    path: "{{ nics_sslcertificates_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: nics_deploy_type == "distributed"
+
+- name: copy cert private key into place
+  copy:
+    src: "{{ nics_data_sslcertificatekeyfile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_data_sslcertificatekeyfile }}"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool) and nics_deploy_type == "distributed"
+
+- name: copy cert public into place
+  copy:
+    src: "{{ nics_data_sslcertificatefile }}"
+    dest: "{{ nics_sslcertificates_path }}/{{ nics_data_sslcertificatefile }}"
+    owner: root
+    group: root
+    mode: 0750
+  notify: restart apache2
+  when: not (nics_use_self_signed_certs|bool) and (nics_copy_sslcertificates|bool) and nics_deploy_type == "distributed"
+
+- name: install python-openssl for self-signed certificate generation
+  apt:
+    name: python-openssl
+    state: present
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a private key
+  openssl_privatekey:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_data_sslcertificatekeyfile }}"
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a csr
+  openssl_csr:
+    path: "{{ nics_sslcertificates_path }}/server.csr"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_data_sslcertificatekeyfile }}"
+    common_name: "{{ nics_data_fqdn }}"
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: generate a self-signed openssl certificate
+  openssl_certificate:
+    path: "{{ nics_sslcertificates_path }}/{{ nics_data_sslcertificatefile }}"
+    privatekey_path: "{{ nics_sslcertificates_path }}/{{ nics_data_sslcertificatekeyfile }}"
+    csr_path: "{{ nics_sslcertificates_path }}/server.csr"
+    provider: selfsigned
+    force: false
+  notify: restart apache2
+  when: (nics_use_self_signed_certs|bool) and nics_deploy_type == "distributed"
+
+- name: enable apache2 site
+  file:
+    src: /etc/apache2/sites-available/nics-data.conf
+    dest: /etc/apache2/sites-enabled/nics-data.conf
+    state: link
+  notify: restart apache2
+  when: nics_deploy_type == "distributed"
+
+- name: create nics home directory
+  file:
+    path: "{{ nics_home_directory }}"
+    state: directory
+    owner: root
+    group: tomcat8
+    mode: 0750
+
+- name: create nics static and config directory
+  file:
+    path: "{{ nics_home_directory }}/{{ item }}"
+    state: directory
+    owner: root
+    group: tomcat8
+    mode: 0750
+  loop:
+    - 'static'
+    - 'config'
+
+- name: create nics upload directories
+  file:
+    path: "{{ nics_home_directory }}/{{ item }}"
+    state: directory
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+  loop:
+    - 'upload'
+    - 'upload/reports'
+    - 'upload/reports/general'
+    - 'upload/reports/damage'
+    - 'upload/reports/uxo'
+    - 'upload/reports/eod'
+    - 'upload/arcgisrest'
+    - 'upload/features'
+    - 'upload/geojson'
+    - 'upload/gpx'
+    - 'upload/image'
+    - 'upload/images'
+    - 'upload/images/geotiff'
+    - 'upload/kml'
+    - 'upload/kmz'
+    - 'upload/shapefiles'
+    - 'upload/tracking'
+    - 'upload/symbology'
+    - 'upload/translations'
+
+- name: copy arrow.png
+  copy:
+    src: upload/tracking/arrow.png
+    dest: "{{ nics_home_directory }}/upload/tracking"
+    owner: root
+    group: tomcat8
+    mode: 0750
+  
+- name: copy point.png
+  copy:
+    src: upload/tracking/point.png
+    dest: "{{ nics_home_directory }}/upload/tracking"
+    owner: root
+    group: tomcat8
+    mode: 0750
+
+- name: copy translation files
+  copy:
+    src: static/translations
+    dest: "{{ nics_home_directory }}/static"
+    owner: root
+    group: tomcat8
+    mode: 0750
+
+- name: copy translation files for upload
+  copy:
+    src: upload/translations
+    dest: "{{ nics_home_directory }}/upload"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+
+- name: copy symbology files
+  copy:
+    src: upload/symbology
+    dest: "{{ nics_home_directory }}/upload"
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+
+- name: configure em-api.properties
+  template:
+    src: em-api.properties
+    dest: "{{ nics_home_directory }}/config/em-api.properties"
+    owner: root
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: copy em-api.war into place
+  copy:
+    src: "{{ nics_emapi_home }}/api-rest-service/target/em-api.war"
+    dest: /var/lib/tomcat8/webapps/em-api.war
+    owner: root
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: configure em-api context file
+  template:
+    src: context.xml
+    dest: /etc/tomcat8/Catalina/localhost/em-api.xml
+    owner: root
+    group: tomcat8
+    mode: 0750
+  notify: restart tomcat8
+
+- name: apply acl on nics home directory
+  acl:
+    path: "{{ nics_home_directory }}"
+    etype: group
+    entity: www-data
+    permissions: rX
+    state: present
+  tags:
+    - acl
+
+- name: apply default acl on static and upload directories
+  acl:
+    path: "{{ nics_home_directory }}/{{ item }}"
+    etype: group
+    entity: www-data
+    permissions: rX
+    recursive: true
+    default: true
+    state: present
+  loop:
+    - 'static'
+    - 'upload'
+  tags:
+    - acl
+
+- name: apply acl on static and upload directories
+  acl:
+    path: "{{ nics_home_directory }}/{{ item }}"
+    etype: group
+    entity: www-data
+    permissions: rX
+    recursive: true
+    state: present
+  loop:
+    - 'static'
+    - 'upload'
+  tags:
+    - acl
+
+- name: set JAVA_OPTS
+  lineinfile:
+    dest: /etc/default/tomcat8
+    state: present
+    regexp: '^JAVA_OPTS'
+    line: "JAVA_OPTS=\"-Xms{{ (ansible_memtotal_mb * 0.5) | int }}m -Xmx{{ (ansible_memtotal_mb * 0.5) | int }}m -Djava.awt.headless=true -XX:+UseParallelGC -XX:SoftRefLRUPolicyMSPerMB=36000\""
+  notify: restart tomcat8
+  when: nics_deploy_type == 'distributed'
+

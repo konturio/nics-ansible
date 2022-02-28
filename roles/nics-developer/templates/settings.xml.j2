@@ -1,0 +1,26 @@
+<settings>
+{% if nics_use_http_proxy != false %}
+  <proxies>
+    <proxy>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>{{ nics_http_proxy_server }}</host>
+      <port>{{ nics_http_proxy_port }}</port>
+      <nonProxyHosts>{{ nics_http_proxy_maven_no_proxy }}</nonProxyHosts>
+    </proxy>
+  </proxies>
+{% endif %} 
+  <servers>  
+    <server>
+        <id>hibernate-spatial</id>
+        <configuration>
+            <httpHeaders>
+              <property>
+                <name>User-Agent</name>
+               <value>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36</value>
+              </property>
+            </httpHeaders>
+        </configuration>
+     </server>
+   </servers>
+</settings>

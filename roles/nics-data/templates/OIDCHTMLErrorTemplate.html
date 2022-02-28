@@ -1,0 +1,7 @@
+<script>
+    function redirect() {
+        window.location.replace("https://{{ nics_data_fqdn }}/sso/redirect_uri?logout=https://{{ nics_alias_fqdn }}");
+    }
+</script>
+<body onload="redirect()">
+    

@@ -1,0 +1,60 @@
+#
+# Copyright (c) 2008-2021, Massachusetts Institute of Technology (MIT)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+---
+# defaults file for nics-keycloak
+
+nics_deploy_type: single-server
+nics_keycloak_download_filename: keycloak-6.0.1.tar.gz
+nics_keycloak_download_url: https://downloads.jboss.org/keycloak/6.0.1/keycloak-6.0.1.tar.gz
+nics_keycloak_download_sha1: 472b37ccc9b5bb3119295c2880db49aada2fe9ed
+nics_keycloak_download_path: "{{ playbook_dir }}/../../files"
+nics_keycloak_home: /opt/keycloak
+nics_keycloak_use_postgresql: true
+nics_keycloak_db_name: keycloak
+nics_keycloak_db_username: keycloak
+nics_keycloak_db_password: keycloak
+nics_keycloak_db_hostname: localhost
+nics_sslcertificates_path: /etc/apache2/certs
+nics_keycloak_sslcertificatefile: nics-keycloak.crt
+nics_keycloak_sslcertificatekeyfile: nics-keycloak.key
+nics_keycloak_fqdn: localhost
+nics_use_self_signed_certs: true
+nics_keycloak_initial_master_realm_username: admin
+nics_keycloak_initial_master_realm_password: adminpassword
+nics_copy_sslcertificates: false
+nics_alias_fqdn: localhost
+nics_data_fqdn: localhost
+nics_web_fqdn: localhost
+nics_keycloak_realm: "NICS"
+nics_keycloak_nics_realm_admin: "nicsadmin"
+nics_keycloak_nics_realm_admin_password: "nicsadminpassword"
+nics_intial_nics_account: "test.user@ll.mit.edu"
+nics_intial_nics_password: "password1234"

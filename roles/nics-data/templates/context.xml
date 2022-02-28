@@ -1,0 +1,18 @@
+<!--
+
+    (c) Copyright, 2008-2016 Massachusetts Institute of Technology.
+
+        This material may be reproduced by or for the
+        U.S. Government pursuant to the copyright license
+        under the clause at DFARS 252.227-7013 (June, 1995).
+
+-->
+<Context>
+<Resource name="jboss/sadisplayDatasource" auth="Container" type="javax.sql.DataSource"
+    maxActive="100" maxIdle="30" maxWait="10000" username="{{ nics_db_username }}" password="{{ nics_db_password }}"
+    driverClassName="org.postgresql.Driver" url="jdbc:postgresql://{{ nics_db_fqdn }}:5432/{{ nics_db_name }}" />
+
+<Resource name="jboss/shapefileDatasource" auth="Container" type="javax.sql.DataSource"
+    maxActive="100" maxIdle="30" maxWait="10000" username="{{ nics_db_username }}" password="{{ nics_db_password }}"
+    driverClassName="org.postgresql.Driver" url="jdbc:postgresql://{{ nics_db_fqdn }}:5432/{{ nics_db_name }}_shapefiles" />
+</Context>

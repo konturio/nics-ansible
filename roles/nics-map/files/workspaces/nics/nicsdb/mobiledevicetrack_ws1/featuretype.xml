@@ -1,0 +1,50 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--35e3b25f:171a8877f2e:-7ffe</id>
+  <name>mobiledevicetrack_ws1</name>
+  <nativeName>mobiledevicetrack_ws1</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--3512ed04:1587784b110:-7ffa</id>
+  </namespace>
+  <title>mobiledevicetrack_ws1</title>
+  <keywords>
+    <string>mobiledevicetrack_ws1</string>
+    <string>features</string>
+  </keywords>
+  <srs>EPSG:3857</srs>
+  <nativeBoundingBox>
+    <minx>-7919982.85467074</minx>
+    <maxx>-7919980.85467074</maxx>
+    <miny>5221754.45305529</miny>
+    <maxy>5221756.45305529</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-7919982.85467074</minx>
+    <maxx>-7919980.85467074</maxx>
+    <miny>5221754.45305529</miny>
+    <maxy>5221756.45305529</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>mobiledevicetrack_ws1</name>
+        <sql>select * from mobiledevicetrack_view where workspaceId=1 or workspaceId is null
+</sql>
+        <escapeSql>false</escapeSql>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--35e3b25f:171a8877f2e:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>
