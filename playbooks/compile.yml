@@ -33,8 +33,9 @@
 
 - name: Download and Compile NICS
   hosts: localhost
+  any_errors_fatal: true
   become: true
   vars_files:
     - ../vars/compile.yml
   roles:
-    - { role: ../roles/nics-developer, tags: 'dev' }
+    - { role: ../roles/nics-developer, tags: dev }

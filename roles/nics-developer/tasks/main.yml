@@ -30,91 +30,91 @@
 
 ---
 
-  - name: Run Ubuntu Tasks
-    include: tasks-Ubuntu.yml
-    when: ansible_os_family == 'Ubuntu'
+- name: Run Ubuntu Tasks
+  include: tasks-Ubuntu.yml
+  when: ansible_os_family == 'Ubuntu'
 
-  - name: Creates .m2 directory if necessary
-    file:
-      path: ~/.m2
-      state: directory
-      recurse: yes
-    become: no
-    tags:
-      - maven
-    
-  - name: add settings.xml to user maven folder, required for proxies and hibernate-spatial
-    template:
-      src: settings.xml.j2
-      dest: ~/.m2/settings.xml
-    become: no
-    tags:
-      - maven
+- name: Creates .m2 directory if necessary
+  file:
+    path: ~/.m2
+    state: directory
+    recurse: 'yes'
+  become: 'no'
+  tags:
+    - maven
 
-  - name: Creates source path directory
-    file:
-      path: "{{ nics_source_path }}"
-      state: directory
-      recurse: yes
-    become: no
-    tags: 
-      - maven
+- name: 'add settings.xml to user maven folder, required for proxies and hibernate-spatial'
+  template:
+    src: settings.xml.j2
+    dest: ~/.m2/settings.xml
+  become: 'no'
+  tags:
+    - maven
 
-  - name: Clone git repos
-    git:
-      repo: "{{ nics_git_repo_root }}/{{ item }}.git"
-      dest: "{{ nics_source_path }}/{{ item }}"
-      update: yes
-      force: yes
-      version: "{{ nics_git_repo_branch }}"
-    with_items: "{{ nics_repos }}"
-    become: no
-    tags:
-      - maven
-      - git
+- name: Creates source path directory
+  file:
+    path: '{{ nics_source_path }}'
+    state: directory
+    recurse: 'yes'
+  become: 'no'
+  tags:
+    - maven
 
-  - name: Delete old ExtJS folder in iweb-modules
-    file:
-      state: absent
-      path: "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs"
-    tags:
-      - extjs
+- name: Clone git repos
+  git:
+    repo: '{{ nics_git_repo_root }}/{{ item }}.git'
+    dest: '{{ nics_source_path }}/{{ item }}'
+    update: 'yes'
+    force: 'yes'
+    version: '{{ nics_git_repo_branch }}'
+  with_items: '{{ nics_repos }}'
+  become: 'no'
+  tags:
+    - maven
+    - git
 
-  - name: Download ExtJS to iweb-modules
-    get_url:
-      url: "https://github.com/fwyzard/extjs/archive/aa5d9a027d419f53add60f57126d4154c1530521.zip"
-      dest: "{{ nics_source_path }}"
-      timeout: 1800
-      use_proxy: true 
-    tags:
-      - extjs
-      - extjs-download
+- name: Delete old ExtJS folder in iweb-modules
+  file:
+    state: absent
+    path: '{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs'
+  tags:
+    - extjs
 
-  - name: Unzip ExtJS to iweb-modules
-    unarchive:
-      src: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
-      dest: "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/"
-    tags:
-      - extjs
+- name: Download ExtJS to iweb-modules
+  get_url:
+    url: 'https://github.com/fwyzard/extjs/archive/aa5d9a027d419f53add60f57126d4154c1530521.zip'
+    dest: '{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip'
+    timeout: 1800
+    use_proxy: 'yes'
+  tags:
+    - extjs
+    - extjs-download
 
-  - name: Unzip ExtJS to node-modules
-    unarchive:
-      src: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
-      dest: "{{ nics_source_path }}/nics-web/"
-    tags:
-      - extjs
+- name: Unzip ExtJS to iweb-modules
+  unarchive:
+    src: '{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip'
+    dest: '{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/'
+  tags:
+    - extjs
 
-  - name: Rename new ExtJS folder into iweb-modules
-    command: mv "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs-aa5d9a027d419f53add60f57126d4154c1530521" "{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs"
-    tags:
-      - extjs
+- name: Unzip ExtJS to node-modules
+  unarchive:
+    src: '{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip'
+    dest: '{{ nics_source_path }}/nics-web/'
+  tags:
+    - extjs
 
-  - name: Build repos
-    shell: mvn clean install -DskipTests >> ansible_mvn_build.txt
-    args:
-      chdir: "{{ nics_source_path }}/{{ item }}"
-    with_items: "{{ nics_repos }}"
-    become: no
-    tags:
-      - maven
-      - build
+- name: Rename new ExtJS folder into iweb-modules
+  command: mv '{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs-aa5d9a027d419f53add60f57126d4154c1530521' '{{ nics_source_path }}/iweb-modules/core/src/main/js/lib/extjs'
+  tags:
+    - extjs
+
+- name: Build repos
+  shell: mvn clean install -DskipTests >> ansible_mvn_build.txt
+  args:
+    chdir: '{{ nics_source_path }}/{{ item }}'
+  with_items: '{{ nics_repos }}'
+  become: 'no'
+  tags:
+    - maven
+    - build
