@@ -18,7 +18,13 @@ There are many different options to install Ansible, at this time we are support
 sudo apt update
 sudo apt install software-properties-common
 sudo apt-add-repository --yes --update ppa:ansible/ansible
-sudo apt install ansible-base
+sudo apt install ansible
+```
+
+### Install additional packages
+```bash
+sudo apt update
+sudo apt install git gzip unzip maven
 ```
 
 ### Configure git to cache credentials

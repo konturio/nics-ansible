@@ -29,7 +29,7 @@
 #
 
 ---
-nics_git_repo_root: git@github.com:NATO-NICS
+nics_git_repo_root: https://github.com/NATO-NICS
 nics_git_repo_branch: main
 nics_repos:
   - nics-assembly

@@ -31,7 +31,7 @@
 ---
 - name: install PostgreSQL, PostGIS and psycopg2
   apt:
-    name: ['postgresql-10','postgis','python-psycopg2']
+    name: ['postgresql-10','python-psycopg2', 'postgresql-10-postgis-2.4', 'postgresql-10-postgis-2.4-scripts']
     state: present
     update_cache: true
 
@@ -159,6 +159,13 @@
   become_user: postgres
   when: nics_pg_db_check.changed
 
+- name: Set /opt directory permissions
+  ansible.builtin.file:
+    path: "/opt"
+    state: directory
+    mode: '0755'
+    recurse: yes
+
 - name: run 7.0.9 Change script
   shell: './7.0.9-changes.sh {{ nics_db_name }} {{ nics_intial_nics_account }}'
   args:
@@ -166,3 +173,51 @@
   become: true
   become_user: postgres
   when: nics_pg_db_check.changed
+
+- name: create symbology
+  shell: './symbology.sh {{ nics_db_name }} {{ nics_intial_nics_account }}'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/scripts/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: add datasource.sh script
+  copy:
+    dest: "{{ nics_home_directory }}/nics-db/scripts/addDatasource.sh"
+    content: |
+        #!/bin/bash
+        if [ "$1" == "" ]
+        then
+          echo "You must specify a database."
+          exit 1
+        fi
+  
+        if [ "$2" == "" ]
+        then
+          echo "You must specify a datasource internal url"
+          exit 1
+        fi
+  
+        psql -c "INSERT INTO datasource (datasourceid, internalurl, datasourcetypeid) VALUES ('E6841EBD-685D-45CE-B312-6D3D790CF4EA', '$2', 13)" $1
+  
+        echo "Result:"
+        psql -c "select * from datasource where datasourceid='E6841EBD-685D-45CE-B312-6D3D790CF4EA'" $1
+        echo ""
+    mode: 0755
+
+- name: add datasource
+  shell: './addDatasource.sh {{ nics_db_name }} https://dev.nics01.konturlabs.com/static/upload/gpx/'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/scripts/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.changed
+
+- name: create weather layers
+  shell: './weather_layers.sh {{ nics_db_name }} 1'
+  args:
+    chdir: "{{ nics_home_directory }}/nics-db/Change/archive/datalayers/weather/"
+  become: true
+  become_user: postgres
+  when: nics_pg_db_check.change

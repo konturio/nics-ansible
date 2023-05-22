@@ -83,7 +83,7 @@
   - name: Download ExtJS to iweb-modules
     get_url:
       url: "https://github.com/fwyzard/extjs/archive/aa5d9a027d419f53add60f57126d4154c1530521.zip"
-      dest: "{{ nics_source_path }}"
+      dest: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
       timeout: 1800
       use_proxy: true 
     tags:
