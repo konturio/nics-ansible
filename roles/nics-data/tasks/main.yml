@@ -192,6 +192,51 @@
     group: tomcat8
     mode: 0750
 
+- name: create symbology directories
+  file:
+    path: "/opt/nics/upload/symbology/{{ item }}/"
+    state: directory
+    owner: root
+    group: tomcat8
+    mode: 0750
+  loop:
+    - 'esi'
+    - 'friendly'
+    - 'hsi'
+    - 'ics'
+    - 'ifrc'
+    - 'incident'
+    - 'mission'
+    - 'ng'
+    - 'sig_sup_serv'
+    - 'unocha'
+    - 'usar'
+    - 'uscg'
+    - 'wildfire'
+
+- name: unzip symbology images
+  unarchive:
+    src: "{{ nics_home_directory }}/upload/symbology/{{ item }}.zip"
+    dest: "{{ nics_home_directory }}/upload/symbology/{{ item }}/"
+    owner: root
+    group: tomcat8
+    mode: 0750
+    extra_opts: ["-o"]
+  loop:
+    - 'esi'
+    - 'friendly'
+    - 'hsi'
+    - 'ics'
+    - 'ifrc'
+    - 'incident'
+    - 'mission'
+    - 'ng'
+    - 'sig_sup_serv'
+    - 'unocha'
+    - 'usar'
+    - 'uscg'
+    - 'wildfire'
+
 - name: configure em-api.properties
   template:
     src: em-api.properties
