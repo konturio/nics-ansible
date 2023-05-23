@@ -97,10 +97,23 @@
     tags:
       - extjs
 
-  - name: Unzip ExtJS to node-modules
+  - name: Delete old ExtJS folder in nics-web
+    file:
+      state: absent
+      path: "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/"
+    tags:
+      - extjs
+
+  - name: Unzip ExtJS to nics-web node-modules
     unarchive:
       src: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
-      dest: "{{ nics_source_path }}/nics-web/"
+      dest: "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/"
+    tags:
+      - extjs
+
+  - name: Rename unzipped ExtJS directory
+    command:
+      cmd: mv "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/extjs-aa5d9a027d419f53add60f57126d4154c1530521" "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/extjs"
     tags:
       - extjs
 
