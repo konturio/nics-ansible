@@ -73,6 +73,17 @@
       - maven
       - git
 
+  - name: Clone nics-ui repo
+    git:
+      repo: "{{ nics_git_repo_root }}/{{ nics_ui_repo }}.git"
+      dest: "{{ nics_source_path }}/{{ nics_ui_repo }}"
+      update: yes
+      force: yes
+      version: "{{ nics_git_repo_branch }}"
+    become: no
+    tags:
+      - git
+
   - name: Delete old ExtJS folder in iweb-modules
     file:
       state: absent
@@ -130,4 +141,12 @@
     become: no
     tags:
       - maven
+      - build
+
+  - name: Build nics-ui
+    shell: npm install && npm run build
+    args:
+      chdir: "{{ nics_source_path }}/{{ nics-ui-repo }}/nics-ui"
+    become: no
+    tags:
       - build
