@@ -40,7 +40,8 @@ nics_repos:
   - nics-db
   - iweb-modules
   - nics-web
-nics-ui-repo: nics-ui
+nics_ui_repo: nics-ui
+nics_help_site_repo: nics-help-site
 nics_use_http_proxy: false
 nics_http_proxy_server: "proxy-fqdn"
 nics_http_proxy_port: 8080

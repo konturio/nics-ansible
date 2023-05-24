@@ -84,6 +84,17 @@
     tags:
       - git
 
+  - name: Clone nics-help-site repo
+    git:
+      repo: "{{ nics_git_repo_root }}/{{ nics_help_site_repo }}.git"
+      dest: "{{ nics_source_path }}/{{ nics_help_site_repo }}"
+      update: yes
+      force: yes
+      version: "{{ nics_git_repo_branch }}"
+    become: no
+    tags:
+      - git
+
   - name: Delete old ExtJS folder in iweb-modules
     file:
       state: absent
