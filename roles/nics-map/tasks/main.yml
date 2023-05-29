@@ -191,6 +191,12 @@
     dest: "{{ nics_home_directory }}/geoserver/"
   when: not geoserver_war.stat.exists
 
+- name: copy geoserver workspaces
+  synchronize:
+    src: /var/lib/tomcat8/webapps/geoserver/data/workspaces
+    dest: "{{ nics_home_directory }}/geoserver/"
+  when: not geoserver_war.stat.exists
+
 - name: copy styles
   copy:
     src: styles
