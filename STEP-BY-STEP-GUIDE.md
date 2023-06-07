@@ -50,7 +50,7 @@ Single-server config:
 These playbooks assume the user who is logging in and using ssh has sudo rights to root without using a password. One may remove this requirement after installation. There was a problem that was not resolved with large folder synchronization without have sudo w/nopasswd.
 
 ### Ensure the hosts file is configured for ansible
-If you are running the single-server playbook, ensure you have a hosts file that contains [nics] with the system you are installing NICS to.
+If you are running the single-server playbook, ensure you have a hosts (`inventory.yml`) file that contains [nics] with the system you are installing NICS to.
 If you are running the distributed playbook ensure you have a hosts file that contains [web], [data], [db], [map] and [identity]. 
 
 Create `inventory.yml` file in `./nics-ansible`. Example for single-server:
