@@ -26,7 +26,7 @@ sudo apt install -y git gzip unzip maven nodejs
 
   - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
 
-  - Run the commands `apt install -y git && git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
+  - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
 ### Compile NICS repositories 
 
