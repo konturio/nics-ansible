@@ -52,7 +52,7 @@ nics_keycloak_realm: "NICS"
 nics_keycloak_clientid: "nics"
 nics_keycloak_clientsecret: "8f5eb497-a688-4bd2-9b67-c28b9e7ca89d"
 #nics_keycloak_clientsecret: "{{ vault_nics_keycloak_clientsecret }}"
-# don't update keycloak nics_realm_admin from nicsadmin, feature not yet implemented
+# don't update keycloak nics_keycloak_nics_realm_admin from nicsadmin, feature not yet implemented
 nics_keycloak_nics_realm_admin: "nicsadmin"
 nics_keycloak_nics_realm_admin_password: "nicsadminpassword"
 #nics_keycloak_nics_realm_admin_password: "{{ vault_nics_keycloak_nics_realm_admin_password }}"
