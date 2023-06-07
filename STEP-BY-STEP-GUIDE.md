@@ -8,7 +8,7 @@ This guide will show you how to run the ansible dev-playbook for a development d
 
   - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
 
-  - Run the command `git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
+  - Run the commands `apt install -y git && git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
 ## Installing Ansible
 There are many different options to install Ansible, at this time we are supporting Ansible 2.10 (ansible-base 2.10).
