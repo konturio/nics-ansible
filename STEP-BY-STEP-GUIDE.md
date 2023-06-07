@@ -29,7 +29,7 @@ sudo apt install -y git gzip unzip maven nodejs
   - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
 ### Edit variables for installing NICS
-You will need to modify some of the variables inside ./vars/single-server.yml or ./vars/distributed.yml.
+You will need to modify some of the variables inside `./nics-ansible/vars/single-server.yml` or `./nics-ansible/vars/distributed.yml.`
 - The single-server playbook installs NICS to a single server. 
 - The distributed playbook installs to multiple servers, one for each role.
 
