@@ -28,19 +28,8 @@ sudo apt install -y git gzip unzip maven nodejs
 
   - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
-### Compile NICS repositories 
-
-Run the compile.yml playbook from the system that will be installing NICS from, this can be the same server that the single-server playbook will run from.
-
-`ansible-playbook playbooks/compile.yml -K`
-
-If you don't need a password to run 'sudo' you can use this command.
-
-`ansible-playbook playbooks/compile.yml`
-
-
 ### Edit variables for installing NICS
-You will need to modify the some of the variables inside ./vars/single-server.yml or ./vars/distributed.yml.
+You will need to modify some of the variables inside ./vars/single-server.yml or ./vars/distributed.yml.
 - The single-server playbook installs NICS to a single server. 
 - The distributed playbook installs to multiple servers, one for each role.
 
@@ -49,6 +38,16 @@ These playbooks assume the user who is logging in and using ssh has sudo rights 
 ### Ensure the hosts file is configured for ansible
 If you are running the single-server playbook, ensure you have a hosts file that contains [nics] with the system you are installing NICS to.
 If you are running the distributed playbook ensure you have a hosts file that contains [web], [data], [db], [map] and [identity]. 
+
+### Compile NICS repositories
+
+Run the compile.yml playbook from the system that will be installing NICS from, this can be the same server that the single-server playbook will run from.
+
+`ansible-playbook playbooks/compile.yml -K`
+
+If you don't need a password to run 'sudo' you can use this command.
+
+`ansible-playbook playbooks/compile.yml`
 
 ### Run the ansible playbook
 Example command to run the single-server playbook.
