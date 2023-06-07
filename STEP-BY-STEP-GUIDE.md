@@ -53,7 +53,7 @@ These playbooks assume the user who is logging in and using ssh has sudo rights 
 If you are running the single-server playbook, ensure you have a hosts (`inventory.yml`) file that contains [nics] with the system you are installing NICS to.
 If you are running the distributed playbook ensure you have a hosts file that contains [web], [data], [db], [map] and [identity]. 
 
-Create `inventory.yml` file in `./nics-ansible`. Example for single-server:
+Create `inventory.yml` file in the `nics-ansible` directory root. Example for single-server:
 ```
 [nics]
 <fully qualified domain name>
@@ -61,7 +61,7 @@ Create `inventory.yml` file in `./nics-ansible`. Example for single-server:
 
 ### Compile NICS repositories
 
-Run the compile.yml playbook from the system that will be installing NICS from, this can be the same server that the single-server playbook will run from.
+Run the compile.yml playbook from the system that will be installing NICS from, this can be the same server that the single-server playbook will run from. Run the command from the `nics-ansible` directory root.
 
 `ansible-playbook playbooks/compile.yml -K`
 
@@ -71,4 +71,6 @@ If you don't need a password to run 'sudo' you can use this command.
 
 ### Run the ansible playbook
 Example command to run the single-server playbook.
+Run the command from the `nics-ansible` directory root.
+
 `ansible-playbook -i inventory.yml playbook/single-server.yml -vvv`
