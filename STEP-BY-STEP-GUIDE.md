@@ -33,6 +33,19 @@ You will need to modify some of the variables inside `./nics-ansible/vars/single
 - The single-server playbook installs NICS to a single server. 
 - The distributed playbook installs to multiple servers, one for each role.
 
+Single-server config:
+1. `nics_alias_fqdn`, `nics_web_fqdn`, `nics_data_fqdn`, `nics_map_fqdn`, `nics_keycloak_fqdn`, `nics_cookie_domain` - fully qualified domain name of the server
+2. `nics_keycloak_nics_realm_admin` - username of Keycloak NICS realm admin user (don't change)
+3. `nics_keycloak_nics_realm_admin_password` - password of Keycloak NICS realm admin user
+5. `nics_keycloak_initial_master_realm_username` - username of Keycloak master realm admin user
+4. `nics_keycloak_initial_master_realm_password` - password of Keycloak master realm admin user
+6. `nics_intial_nics_account` - username of initial NICS user
+7. `nics_intial_nics_password` - password of initial NICS user 
+8. `nics_keycloak_db_username` - username of NICS Keyckoak DB user
+9. `nics_keycloak_db_password` - password of NICS Keycloak DB user
+10. `nics_geoserver_username` - username of Geoserver admin user
+12. `nics_geoserver_password` - password of Geoserver admin user
+
 These playbooks assume the user who is logging in and using ssh has sudo rights to root without using a password. One may remove this requirement after installation. There was a problem that was not resolved with large folder synchronization without have sudo w/nopasswd.
 
 ### Ensure the hosts file is configured for ansible
