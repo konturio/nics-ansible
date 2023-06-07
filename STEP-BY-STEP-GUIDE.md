@@ -4,18 +4,12 @@
 
 This guide will show you how to run the ansible dev-playbook for a development desktop/server on Ubuntu 18.04. This playbook will compile, install and configure NICS components for development.
 
-## Get a copy of nics-ansible playbooks. There are two ways to get a copy:
-
-  - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
-
-  - Run the commands `apt install -y git && git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
-
-## Installing Ansible
+### Installing Ansible
 There are many different options to install Ansible, at this time we are supporting Ansible 2.10 (ansible-base 2.10).
 
 ### Ubuntu 18.04/20.04 using Ansible's Ubuntu PPA
 ```bash
-sudo apt update
+sudo apt update && sudo apt upgrade && sudo systemctl reboot
 sudo apt install software-properties-common
 sudo apt-add-repository --yes --update ppa:ansible/ansible
 sudo apt install ansible
@@ -27,6 +21,12 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
 sudo apt update
 sudo apt install -y git gzip unzip maven nodejs
 ```
+
+### Get a copy of nics-ansible playbooks. There are two ways to get a copy:
+
+  - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
+
+  - Run the commands `apt install -y git && git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
 ### Compile NICS repositories 
 
