@@ -1,0 +1,15 @@
+[Unit]
+Description=gst2gml
+After=network.target
+
+[Service]
+WorkingDirectory={{ nics_home_directory }}/deploy/gst2gml
+ExecStart=/usr/bin/java -DappName=gst2gml -Xmx256M -server -cp "./lib/*" org.apache.camel.spring.Main -fa config/spring/gst2gml.xml
+User=tomcat8
+Type=simple
+ExecStop=/bin/kill -INT $MAINPID
+ExecReload=/bin/kill -TERM $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

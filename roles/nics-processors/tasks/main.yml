@@ -29,72 +29,101 @@
 #
 
 ---
-  
-- name: create deploy directory
+
+- name: deploy and configure services
+  vars:
+    nics_ansible_path: "~/nics/nics-core-processor"
+    nics_deploy_path: "/opt/nics/deploy"
+    version: "7.0.9-SNAPSHOT"
+    apps:
+      - collab-feed-manager
+      - email-consumer
+      - geodatafeed-consumer
+      - gst2gml
+      - incorg-room-creator
+      - json-pli-consumer
+
+- name: create deploy and application directories
   file:
-    path: "{{ nics_home_directory }}/deploy"
+    path: "{{ nics_home_directory }}/deploy/{{ item }}"
     state: directory
     owner: tomcat8
     group: tomcat8
     mode: 0750
+  loop: "{{ apps }}"
 
-- name: create email-consumer directory
-  file:
-    path: "{{ nics_home_directory }}/deploy/email-consumer"
-    state: directory
-    owner: tomcat8
-    group: tomcat8
-    mode: 0750
-
-- name: unpack email consumer into place
+- name: Unarchive component manager archive
   unarchive:
-    src: "{{ item }}"
-    dest: "{{ nics_home_directory }}/deploy/email-consumer"
-    extra_opts: ['--strip-components=1', '--show-stored-names']
-    exclude:
-      - config/email-consumer.properties
-    owner: tomcat8
-    group: tomcat8
-    mode: u=rwX,g=rX,o=
-  with_fileglob:
-      - "{{ nics_processor_home }}/email-consumer/target/email-consumer*.tar.gz"
-  notify: restart email-consumer
+    src: "{{ nics_ansible_path }}/component-manager-archive-builder/target/nics-component-manager-archive.zip"
+    dest: "{{ nics_ansible_path }}/component-manager-archive-builder/target/unarchived"
+    remote_src: yes
 
-- name: configure email consumer properties
+- name: Clear service deploy path
+  file:
+    path: "{{ nics_deploy_path }}/{{ item }}"
+    state: absent
+  loop: "{{ apps }}"
+
+- name: Create service deploy directory
+  file:
+    path: "{{ nics_deploy_path }}/{{ item }}"
+    state: directory
+    mode: '0755'
+
+- name: Unpack service tar.gz
+  unarchive:
+    src: "{{ nics_ansible_path }}/component-manager-archive-builder/target/unarchived/{{ item }}-{{ version }}-deployable.tar.gz"
+    dest: "{{ nics_deploy_path }}/{{ item }}"
+    remote_src: yes
+  loop: "{{ apps }}"
+
+- name: Move files from versioned directory to root of service directory
+  command:
+    cmd: mv "{{ nics_deploy_path }}/{{ item }}/{{ item }}-{{ version }}/*" "{{ nics_deploy_path }}/{{ item }}/"
+    warn: false
+  loop: "{{ apps }}"
+
+- name: configure application properties
   template:
-    src: email-consumer.properties
-    dest: "{{ nics_home_directory }}/deploy/email-consumer/config"
+    src: "{{ item }}.properties"
+    dest: "{{ nics_home_directory }}/deploy/{{ item }}/config"
     owner: tomcat8
     group: tomcat8
     mode: u=rw,g=r,o=
-  notify: restart email-consumer
+  loop: "{{ apps }}"
+  notify: restart {{ item }}
 
 - name: update ownership on deploy directory
   file:
-    path: "{{ nics_home_directory }}/deploy/email-consumer"
+    path: "{{ nics_home_directory }}/deploy/{{ item }}"
     state: directory
     owner: tomcat8
     group: tomcat8
     mode: u=rwX,g=rX,o=
     recurse: true
+  loop: "{{ apps }}"
 
-- name: copy email-consumer systemd unit file
+- name: copy application systemd unit file
   template:
-    src: email-consumer.service
-    dest: /lib/systemd/system/email-consumer.service
+    src: "{{ item }}.service"
+    dest: /lib/systemd/system/{{ item }}.service
     owner: root
     group: root
-  notify: restart email-consumer
+  loop: "{{ apps }}"
+  notify: restart {{ item }}
 
-- name: link email-consumer systemd unit file
+- name: link application systemd unit file
   file:
-    src: /lib/systemd/system/email-consumer.service
-    dest: /etc/systemd/system/email-consumer.service
+    src: /lib/systemd/system/{{ item }}.service
+    dest: /etc/systemd/system/{{ item }}.service
     state: link
+  loop: "{{ apps }}"
 
-- name: enable email-consumer systemd daemon
+- name: enable application systemd daemon
   systemd:
-    name: email-consumer
+    name: "{{ item }}"
     enabled: true
     daemon_reload: true
+  loop: "{{ apps }}"`
+
 

@@ -1,0 +1,15 @@
+[Unit]
+Description=collab-feed-manager
+After=network.target
+
+[Service]
+WorkingDirectory={{ nics_home_directory }}/deploy/collab-feed-manager
+ExecStart=/usr/bin/java -DappName=collab-feed-manager -Xmx256M -server -cp "./lib/*" org.apache.camel.spring.Main -fa config/spring/collab-feed-manager.xml
+User=tomcat8
+Type=simple
+ExecStop=/bin/kill -INT $MAINPID
+ExecReload=/bin/kill -TERM $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
