@@ -36,13 +36,13 @@ nics_deploy_type: "single-server"
 
 # webserver alias FQDN, this is the freindly name is one is given
 # each server must be able to resolve it's own FQDN to it's own IP address,
-nics_alias_fqdn: alias.domain.tld
-nics_web_fqdn: alias.domain.tld
-nics_data_fqdn: alias.domain.tld
-nics_map_fqdn: alias.domain.tld
-nics_keycloak_fqdn: alias.domain.tld
+nics_alias_fqdn: <alias.domain.tld>
+nics_web_fqdn: <alias.domain.tld>
+nics_data_fqdn: <alias.domain.tld>
+nics_map_fqdn: <alias.domain.tld>
+nics_keycloak_fqdn: <alias.domain.tld>
 # cookie domain, for single server this the fqdn of the hostname
-nics_cookie_domain: alias.domain.tld
+nics_cookie_domain: <alias.domain.tld>
 nics_db_fqdn: localhost
 
 # keycloak variables
