@@ -24,9 +24,9 @@ sudo apt install -y git gzip unzip maven nodejs
 
 ### Get a copy of nics-ansible playbooks. There are two ways to get a copy:
 
-  - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
+  - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip) (while chnages are not in upstream use Kontur repository [ZIP file](https://github.com/konturio/nics-ansible/archive/refs/heads/main.zip)). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
 
-  - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
+  - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` (while chnages are not in upstream use Kontur repository `git clone https://github.com/konturio/nics-ansible.git`) to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
 ### Edit variables for installing NICS
 You will need to modify some of the variables inside `./nics-ansible/vars/single-server.yml` or `./nics-ansible/vars/distributed.yml.`
