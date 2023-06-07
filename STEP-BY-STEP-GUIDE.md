@@ -41,9 +41,10 @@ Single-server config:
 4. `nics_keycloak_initial_master_realm_password` - password of Keycloak master realm admin user
 6. `nics_intial_nics_account` - username of initial NICS user
 7. `nics_intial_nics_password` - password of initial NICS user 
-8. `nics_keycloak_db_username` - username of NICS Keyckoak DB user
-9. `nics_keycloak_db_password` - password of NICS Keycloak DB user
-10. `nics_geoserver_username` - username of Geoserver admin user
+8. `nics_keycloak_db_username` - username of Keyckoak DB user
+9. `nics_keycloak_db_password` - password of Keycloak DB user
+10. `nics_db_password` - password of NICS DB user
+11. `nics_geoserver_username` - username of Geoserver admin user
 12. `nics_geoserver_password` - password of Geoserver admin user
 
 These playbooks assume the user who is logging in and using ssh has sudo rights to root without using a password. One may remove this requirement after installation. There was a problem that was not resolved with large folder synchronization without have sudo w/nopasswd.
