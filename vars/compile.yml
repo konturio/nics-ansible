@@ -30,7 +30,15 @@
 
 ---
 nics_git_repo_root: https://github.com/NATO-NICS
+nics_git_repo_root_kontur: https://github.com/konturio
 nics_git_repo_branch: main
+
+nics_repos_kontur:
+  - nics-core-processor
+  - nics-web
+  - nics-ui
+  - nics-db
+
 nics_repos:
   - nics-assembly
   - nics-common
@@ -40,6 +48,7 @@ nics_repos:
   - nics-db
   - iweb-modules
   - nics-web
+
 nics_ui_repo: nics-ui
 nics_help_site_repo: nics-help-site
 nics_use_http_proxy: false

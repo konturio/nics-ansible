@@ -60,40 +60,33 @@
     tags: 
       - maven
 
-  - name: Clone git repos
+  - name: Clone git NATO-NICS repos
     git:
       repo: "{{ nics_git_repo_root }}/{{ item }}.git"
       dest: "{{ nics_source_path }}/{{ item }}"
       update: yes
       force: yes
       version: "{{ nics_git_repo_branch }}"
-    with_items: "{{ nics_repos }}"
+    with_items: "{{ nics_repos_nato }}"
     become: no
     tags:
       - maven
       - git
 
-  - name: Clone nics-ui repo
+### temporary block TODO: remove after changes in upstream
+  - name: Clone git Kontur repos
     git:
-      repo: "{{ nics_git_repo_root }}/{{ nics_ui_repo }}.git"
-      dest: "{{ nics_source_path }}/{{ nics_ui_repo }}"
+      repo: "{{ nics_git_repo_root_kontur }}/{{ item }}.git"
+      dest: "{{ nics_source_path }}/{{ item }}"
       update: yes
       force: yes
       version: "{{ nics_git_repo_branch }}"
+    with_items: "{{ nics_repos_kontur }}"
     become: no
     tags:
+      - maven
       - git
-
-  - name: Clone nics-help-site repo
-    git:
-      repo: "{{ nics_git_repo_root }}/{{ nics_help_site_repo }}.git"
-      dest: "{{ nics_source_path }}/{{ nics_help_site_repo }}"
-      update: yes
-      force: yes
-      version: "{{ nics_git_repo_branch }}"
-    become: no
-    tags:
-      - git
+###
 
   - name: Delete old ExtJS folder in iweb-modules
     file:

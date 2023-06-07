@@ -30,7 +30,30 @@
 
 
 nics_git_repo_root: https://github.com/NATO-NICS
+nics_git_repo_root_kontur: https://github.com/konturio
 nics_git_repo_branch: main
+
+### temporary block TODO: delete after changes are in upstream
+nics_repos_kontur:
+  - nics-core-processor
+  - nics-web
+  - nics-ui
+  - nics-db
+###
+
+nics_repos_nato:
+  - nics-assembly
+  - nics-common
+  - nics-tools
+  - em-api
+  - iweb-modules
+  - nics-help-site
+#  - nics-core-processor
+#  - nics-web
+#  - nics-ui
+#  - nics-db
+# TODO: uncomment after changes in upstream
+
 nics_repos:
   - nics-assembly
   - nics-common
@@ -40,6 +63,7 @@ nics_repos:
   - nics-db
   - iweb-modules
   - nics-web
+
 nics_use_http_proxy: true
 nics_http_proxy_server: "fqdn.proxy.domain.tld"
 nics_http_proxy_port: 8080

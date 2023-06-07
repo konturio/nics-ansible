@@ -23,19 +23,9 @@ sudo apt install ansible
 
 ### Install additional packages
 ```bash
+curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
 sudo apt update
-sudo apt install git gzip unzip maven
-```
-
-### Configure git to cache credentials
- If you are using http to access the git repositories, you will be prompted for username and password when using git to clone the nics-ansible Github repo. When running our ansible playbooks you will be prompted several times to login to Github.com since it's pulling down multiple repositories. It is easier to let git cache these credentials than to enter the credentials multiple times. The command below caches your entry for 8hrs.
-
-`git config --global credential.helper 'cache --timeout 28800'`
-
-Example:
-
-```
-ubuntu@ip-10-0-0-127:~$ git config --global credential.helper 'cache --timeout 28800'
+sudo apt install -y git gzip unzip maven nodejs
 ```
 
 ### Compile NICS repositories 
@@ -62,4 +52,10 @@ If you are running the distributed playbook ensure you have a hosts file that co
 
 ### Run the ansible playbook
 Example command to run the single-server playbook.
-`ansible-playbook -i <your hosts file> playbook/single-server.yml -vvv`
+`ansible-playbook -i inventory.yml playbook/single-server.yml -vvv`
+
+inventory.yml example for single-server:
+```
+[nics]
+<fully qualified domain name>
+```
