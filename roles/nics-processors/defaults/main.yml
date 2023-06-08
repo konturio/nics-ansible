@@ -31,3 +31,10 @@
 ---
 nics_home_directory: /opt/nics
 nics_emailconsumer_deploy_dir: "{{ nics_home_directory }}/deploy/email-consumer"
+nics_deploy_path: "/opt/nics/deploy"
+version: "7.0.9-SNAPSHOT"
+apps:
+  - collab-feed-manager
+  - geodatafeed-consumer
+  - gst2gml
+  - json-pli-consumer

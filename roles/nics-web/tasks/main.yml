@@ -240,13 +240,13 @@
 
 - name: copy build files to /var/www/html/nics-ui/
   copy:
-    src: "{{ nics_source_path }}/{{ item }}/nics-ui/build/"
+    src: "{{ nics_source_path }}/nics-ui/nics-ui/build/"
     dest: /var/www/html/nics-ui/
     mode: '0755'
 
 - name: copy static files to /opt/nics/static/
   copy:
-    src: "{{ nics_source_path }}/{{ item }}/nics-ui/build/static/"
+    src: "{{ nics_source_path }}/nics-ui/nics-ui/build/static/"
     dest: /opt/nics/static/
     mode: '0755'
 
@@ -260,7 +260,7 @@
 
 - name: copy nics-help-site files to /var/www/html/help
   copy:
-    src: "{{ nics_source_path }}/{{ nics_help_site_repo }}/"
+    src: "{{ nics_source_path }}/nics-help-site/"
     dest: /var/www/html/help/
     mode: '0755'
   notify: restart apache2

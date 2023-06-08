@@ -39,6 +39,14 @@
     mode: 0750
   loop: "{{ apps }}"
 
+- name: create unarchive directory
+  file:
+    path: "{{ nics_processor_home }}/component-manager-archive-builder/target/unarchived"
+    state: directory
+    owner: tomcat8
+    group: tomcat8
+    mode: 0750
+
 - name: Unarchive component manager archive
   unarchive:
     src: "{{ nics_processor_home }}/component-manager-archive-builder/target/nics-component-manager-archive.zip"
@@ -56,6 +64,7 @@
     path: "{{ nics_deploy_path }}/{{ item }}"
     state: directory
     mode: '0755'
+  loop: "{{ apps }}"
 
 - name: Unpack service tar.gz
   unarchive:
