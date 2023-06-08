@@ -42,7 +42,7 @@
     become: no
     tags:
       - maven
-    
+
   - name: add settings.xml to user maven folder, required for proxies and hibernate-spatial
     template:
       src: settings.xml.j2
@@ -57,7 +57,7 @@
       state: directory
       recurse: yes
     become: no
-    tags: 
+    tags:
       - maven
 
   - name: Clone git NATO-NICS repos
@@ -95,12 +95,12 @@
     tags:
       - extjs
 
-  - name: Download ExtJS to iweb-modules
+  - name: Download ExtJS
     get_url:
       url: "https://github.com/fwyzard/extjs/archive/aa5d9a027d419f53add60f57126d4154c1530521.zip"
       dest: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
       timeout: 1800
-      use_proxy: true 
+      use_proxy: true
     tags:
       - extjs
       - extjs-download
@@ -119,16 +119,16 @@
     tags:
       - extjs
 
-  - name: Unzip ExtJS to nics-web node-modules
+  - name: Unzip ExtJS to nics-web
     unarchive:
       src: "{{ nics_source_path }}/aa5d9a027d419f53add60f57126d4154c1530521.zip"
-      dest: "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/"
+      dest: "{{ nics_source_path }}/nics-web/"
     tags:
       - extjs
 
   - name: Rename unzipped ExtJS directory
     command:
-      cmd: mv "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/extjs-aa5d9a027d419f53add60f57126d4154c1530521" "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/extjs"
+      cmd: mv "{{ nics_source_path }}/nics-web/extjs-aa5d9a027d419f53add60f57126d4154c1530521" "{{ nics_source_path }}/nics-web/extjs"
     tags:
       - extjs
 
@@ -143,6 +143,7 @@
       chdir: "{{ nics_source_path }}/{{ item }}"
     with_items: "{{ nics_repos }}"
     become: no
+    ignore_errors: yes
     tags:
       - maven
       - build
@@ -150,7 +151,24 @@
   - name: Build nics-ui
     shell: npm install && npm run build
     args:
-      chdir: "{{ nics_source_path }}/{{ nics-ui-repo }}/nics-ui"
+      chdir: "{{ nics_source_path }}/nics-ui/nics-ui"
     become: no
     tags:
       - build
+
+  - name: Replace extjs from nics-web node_modules
+    synchronize:
+      src: "{{ nics_source_path }}/nics-web/extjs/"
+      dest: "{{ nics_source_path }}/nics-web/node_modules/iweb-modules/core/src/main/js/lib/extjs"
+      delete: yes
+      recursive: yes
+
+  - name: Build nics-web
+    shell: mvn clean install -DskipTests >> ansible_mvn_build.txt
+    args:
+      chdir: "{{ nics_source_path }}/nics-web"
+    become: no
+    tags:
+      - maven
+      - build
+

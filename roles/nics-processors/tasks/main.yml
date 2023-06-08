@@ -30,19 +30,6 @@
 
 ---
 
-- name: deploy and configure services
-  vars:
-    nics_ansible_path: "~/nics/nics-core-processor"
-    nics_deploy_path: "/opt/nics/deploy"
-    version: "7.0.9-SNAPSHOT"
-    apps:
-      - collab-feed-manager
-      - email-consumer
-      - geodatafeed-consumer
-      - gst2gml
-      - incorg-room-creator
-      - json-pli-consumer
-
 - name: create deploy and application directories
   file:
     path: "{{ nics_home_directory }}/deploy/{{ item }}"
@@ -54,8 +41,8 @@
 
 - name: Unarchive component manager archive
   unarchive:
-    src: "{{ nics_ansible_path }}/component-manager-archive-builder/target/nics-component-manager-archive.zip"
-    dest: "{{ nics_ansible_path }}/component-manager-archive-builder/target/unarchived"
+    src: "{{ nics_processor_home }}/component-manager-archive-builder/target/nics-component-manager-archive.zip"
+    dest: "{{ nics_processor_home }}/component-manager-archive-builder/target/unarchived"
     remote_src: yes
 
 - name: Clear service deploy path
@@ -72,7 +59,7 @@
 
 - name: Unpack service tar.gz
   unarchive:
-    src: "{{ nics_ansible_path }}/component-manager-archive-builder/target/unarchived/{{ item }}-{{ version }}-deployable.tar.gz"
+    src: "{{ nics_processor_home }}/component-manager-archive-builder/target/unarchived/{{ item }}-{{ version }}-deployable.tar.gz"
     dest: "{{ nics_deploy_path }}/{{ item }}"
     remote_src: yes
   loop: "{{ apps }}"
@@ -124,6 +111,6 @@
     name: "{{ item }}"
     enabled: true
     daemon_reload: true
-  loop: "{{ apps }}"`
+  loop: "{{ apps }}"
 
 

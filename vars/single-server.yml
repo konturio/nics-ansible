@@ -110,3 +110,12 @@ nics_email_password: ""
 # Used for the From field on emails and the destination of NICS notifications 
 nics_email_fromfield_and_notifications: noreply@alias.domain.tld
 
+nics_deploy_path: "/opt/nics/deploy"
+version: "7.0.9-SNAPSHOT"
+apps:
+  - collab-feed-manager
+  - email-consumer
+  - geodatafeed-consumer
+  - gst2gml
+  - incorg-room-creator
+  - json-pli-consumer

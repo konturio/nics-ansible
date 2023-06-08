@@ -33,6 +33,7 @@
 
 - name: bootstrap our server
   hosts: all
+  connection: local
   gather_facts: no
   tags: always
   become: true

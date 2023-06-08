@@ -66,6 +66,13 @@
     state: present
   notify: restart postgresql
 
+- name: configure postgresql to allow access for nics initial account
+  lineinfile:
+    dest: /etc/postgresql/10/main/pg_hba.conf
+    line: 'local     all        {{ nics_intial_nics_account }}              trust'
+    insertafter: '^#?local \s+ all \s+ postgres \s+ peer'
+    state: present
+
 - meta: flush_handlers
 
 - name: Ensure the PostgreSQL service is running
@@ -207,7 +214,7 @@
     mode: 0755
 
 - name: add datasource
-  shell: './addDatasource.sh {{ nics_db_name }} https://dev.nics01.konturlabs.com/static/upload/gpx/'
+  shell: './addDatasource.sh {{ nics_db_name }} https://{{ nics_alias_fqdn }}/static/upload/gpx/'
   args:
     chdir: "{{ nics_home_directory }}/nics-db/scripts/"
   become: true
