@@ -193,8 +193,8 @@
 
 - name: copy geoserver workspaces
   synchronize:
-    src: /var/lib/tomcat8/webapps/geoserver/data/workspaces
-    dest: "{{ nics_home_directory }}/geoserver/"
+    src: "{{ nics_geoserver_download_path }}/workspaces"
+    dest: "{{ nics_home_directory }}/geoserver/workspaces"
   when: not geoserver_war.stat.exists
 
 - name: copy styles

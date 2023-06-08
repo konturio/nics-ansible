@@ -174,7 +174,7 @@
     recurse: yes
 
 - name: run 7.0.9 Change script
-  shell: './7.0.9-changes.sh {{ nics_db_name }} {{ nics_intial_nics_account }}'
+  shell: './7.0.9-changes.sh {{ nics_db_name }} {{ nics_db_username }}'
   args:
     chdir: "{{ nics_home_directory }}/nics-db/Change/"
   become: true
@@ -182,7 +182,7 @@
   when: nics_pg_db_check.changed
 
 - name: create symbology
-  shell: './symbology.sh {{ nics_db_name }} {{ nics_intial_nics_account }}'
+  shell: './symbology.sh {{ nics_db_name }} {{ nics_db_username }}'
   args:
     chdir: "{{ nics_home_directory }}/nics-db/scripts/"
   become: true
