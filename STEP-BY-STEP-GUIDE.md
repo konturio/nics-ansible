@@ -31,9 +31,9 @@ chmod 600 ~/.ssh/authorized_keys
 
 ### Get a copy of nics-ansible playbooks. There are two ways to get a copy:
 
-  - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
+  - Download the [ZIP file](https://github.com/NATO-NICS/nics-ansible/archive/master.zip) (while chnages are not in upstream use Kontur repository [ZIP file](https://github.com/konturio/nics-ansible/archive/refs/heads/main.zip)). Unzip the file to create a directory named `nics-ansible-master` containing the nics-ansible playbooks.
 
-  - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` to create a directory named `nics-ansible` containing the nics-ansible playbooks.
+  - Run the commands `git clone https://github.com/NATO-NICS/nics-ansible.git` (while chnages are not in upstream use Kontur repository `git clone https://github.com/konturio/nics-ansible.git`) to create a directory named `nics-ansible` containing the nics-ansible playbooks.
 
 ### Edit variables for installing NICS
 You will need to modify some of the variables inside `./nics-ansible/vars/single-server.yml` or `./nics-ansible/vars/distributed.yml.`
@@ -48,20 +48,27 @@ Single-server config:
 4. `nics_keycloak_initial_master_realm_password` - password of Keycloak master realm admin user
 6. `nics_intial_nics_account` - username of initial NICS user
 7. `nics_intial_nics_password` - password of initial NICS user 
-8. `nics_keycloak_db_username` - username of NICS Keyckoak DB user
-9. `nics_keycloak_db_password` - password of NICS Keycloak DB user
-10. `nics_geoserver_username` - username of Geoserver admin user
+8. `nics_keycloak_db_username` - username of Keyckoak DB user
+9. `nics_keycloak_db_password` - password of Keycloak DB user
+10. `nics_db_password` - password of NICS DB user
+11. `nics_geoserver_username` - username of Geoserver admin user
 12. `nics_geoserver_password` - password of Geoserver admin user
 
 These playbooks assume the user who is logging in and using ssh has sudo rights to root without using a password. One may remove this requirement after installation. There was a problem that was not resolved with large folder synchronization without have sudo w/nopasswd.
 
 ### Ensure the hosts file is configured for ansible
-If you are running the single-server playbook, ensure you have a hosts file that contains [nics] with the system you are installing NICS to.
+If you are running the single-server playbook, ensure you have a hosts (`inventory.yml`) file that contains [nics] with the system you are installing NICS to.
 If you are running the distributed playbook ensure you have a hosts file that contains [web], [data], [db], [map] and [identity]. 
+
+Create `inventory.yml` file in the `nics-ansible` directory root. Example for single-server:
+```
+[nics]
+<fully qualified domain name>
+```
 
 ### Compile NICS repositories
 
-Run the compile.yml playbook from the system that will be installing NICS from, this can be the same server that the single-server playbook will run from.
+Run the compile.yml playbook from the system that will be installing NICS from, this can be the same server that the single-server playbook will run from. Run the command from the `nics-ansible` directory root.
 
 `ansible-playbook playbooks/compile.yml -K`
 
@@ -71,6 +78,8 @@ If you don't need a password to run 'sudo' you can use this command.
 
 ### Run the ansible playbook
 Example command to run the single-server playbook.
+Run the command from the `nics-ansible` directory root.
+
 `ansible-playbook -i inventory.yml playbook/single-server.yml -vvv`
 
 inventory.yml example for single-server:
