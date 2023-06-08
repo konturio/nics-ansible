@@ -35,3 +35,27 @@
       name: email-consumer
       state: restarted
       daemon_reload: true
+
+  - name: restart collab-feed-manager
+    systemd:
+      name: collab-feed-manager
+      state: restarted
+      daemon_reload: true
+
+  - name: restart geodatafeed-consumer
+    systemd:
+      name: geodatafeed-consumer
+      state: restarted
+      daemon_reload: true
+
+  - name: restart gst2gml
+    systemd:
+      name: gst2gml
+      state: restarted
+      daemon_reload: true
+
+  - name: restart json-pli-consumer
+    systemd:
+      name: json-pli-consumer
+      state: restarted
+      daemon_reload: true

@@ -74,9 +74,11 @@
   loop: "{{ apps }}"
 
 - name: Move files from versioned directory to root of service directory
-  command:
-    cmd: mv "{{ nics_deploy_path }}/{{ item }}/{{ item }}-{{ version }}/*" "{{ nics_deploy_path }}/{{ item }}/"
-    warn: false
+  synchronize:
+    src: "{{ nics_deploy_path }}/{{ item }}/{{ item }}-{{ version }}/"
+    dest: "{{ nics_deploy_path }}/{{ item }}/"
+    recursive: yes
+    delete: yes
   loop: "{{ apps }}"
 
 - name: configure application properties
