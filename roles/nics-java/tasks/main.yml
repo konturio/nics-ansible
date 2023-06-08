@@ -44,3 +44,8 @@
     regexp: '^JAVA_HOME'
     line: "JAVA_HOME={{ nics_java_home_path }}"
   when: ansible_os_family == 'Debian'
+
+- name: Set Java to version 8
+  shell: >
+    update-alternatives --set java $(update-alternatives --list java | grep java-8-openjdk-amd64)
+  become: yes
