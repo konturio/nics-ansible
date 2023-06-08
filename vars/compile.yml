@@ -76,3 +76,4 @@ nics_db_home: "{{ source_path }}/nics-db"
 nics_web_home: "{{ source_path }}/nics-web"
 nics_iweb_home: "{{ source_path }}/iweb-modules"
 nics_processor_home: "{{ source_path }}/nics-core-processor"
+nics_fqdn: demo.nics01.konturlabs.com

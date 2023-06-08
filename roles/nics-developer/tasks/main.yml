@@ -149,7 +149,7 @@
       - build
 
   - name: Build nics-ui
-    shell: npm install && npm run build
+    shell: REACT_APP_API_URL={{ nics_fqdn }}/api/v1 npm install && npm run build
     args:
       chdir: "{{ nics_source_path }}/nics-ui/nics-ui"
     become: no
