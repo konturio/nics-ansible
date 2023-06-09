@@ -97,7 +97,7 @@ nics_db_username: "nics"
 nics_db_password: "<nicsdbpassword>"
 #nics_db_password: "{{ vault_nics_db_password }}"
 
-nics_geoserver_username: "<admin>"
+nics_geoserver_username: "admin"
 nics_geoserver_password: "<geoserverpassword>"
 #nics_geoserver_password: "{{ vault_nics_geoserver_password }}"
 
