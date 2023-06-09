@@ -81,9 +81,3 @@ Example command to run the single-server playbook.
 Run the command from the `nics-ansible` directory root.
 
 `ansible-playbook -i inventory.yml playbook/single-server.yml -vvv`
-
-inventory.yml example for single-server:
-```
-[nics]
-<fully qualified domain name>
-```
