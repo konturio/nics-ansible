@@ -41,16 +41,15 @@ You will need to modify some of the variables inside `./nics-ansible/vars/single
 
 Single-server config:
 1. `nics_alias_fqdn`, `nics_web_fqdn`, `nics_data_fqdn`, `nics_map_fqdn`, `nics_keycloak_fqdn`, `nics_cookie_domain` - fully qualified domain name of the server
-2. `nics_keycloak_nics_realm_admin` - username of Keycloak NICS realm admin user (don't change)
-3. `nics_keycloak_nics_realm_admin_password` - password of Keycloak NICS realm admin user
-4. `nics_keycloak_initial_master_realm_username` - username of Keycloak master realm admin user
-5. `nics_keycloak_initial_master_realm_password` - password of Keycloak master realm admin user
-6. `nics_intial_nics_account` - username of initial NICS user
-7. `nics_intial_nics_password` - password of initial NICS user 
-8. `nics_keycloak_db_username` - username of Keyckoak DB user
-9. `nics_keycloak_db_password` - password of Keycloak DB user
-10. `nics_db_password` - password of NICS DB user
-11. `nics_geoserver_password` - password of Geoserver admin user
+2. `nics_keycloak_nics_realm_admin_password` - password of Keycloak NICS realm admin user
+3. `nics_keycloak_initial_master_realm_username` - username of Keycloak master realm admin user
+4. `nics_keycloak_initial_master_realm_password` - password of Keycloak master realm admin user
+5. `nics_intial_nics_account` - username of initial NICS user
+6. `nics_intial_nics_password` - password of initial NICS user 
+7. `nics_keycloak_db_username` - username of Keyckoak DB user
+8. `nics_keycloak_db_password` - password of Keycloak DB user
+9. `nics_db_password` - password of NICS DB user
+10. `nics_geoserver_password` - password of Geoserver admin user
 
 You'll also need to modify `./nics-ansible/vars/compile.yml`:
 1. `nics_ui_fqdn` - fully qualified domain name of the NICS administration UI
