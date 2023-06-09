@@ -80,4 +80,4 @@ If you don't need a password to run 'sudo' you can use this command.
 Example command to run the single-server playbook.
 Run the command from the `nics-ansible` directory root.
 
-`ansible-playbook -i inventory.yml playbookы/single-server.yml -vvv`
+`ansible-playbook -i inventory.yml playbooks/single-server.yml -vvv`
