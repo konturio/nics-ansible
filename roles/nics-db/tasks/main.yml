@@ -227,4 +227,4 @@
     chdir: "{{ nics_home_directory }}/nics-db/Change/archive/datalayers/weather/"
   become: true
   become_user: postgres
-  when: nics_pg_db_check.change
+  when: nics_pg_db_check.changed
