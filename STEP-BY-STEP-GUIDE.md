@@ -22,6 +22,7 @@ sudo apt install -y git gzip unzip maven nodejs
 
 ### Generate an SSH key (local ansible run, on the server)
 ```bash 
+# Press 'Enter' for all questions
 ssh-keygen -t rsa
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
