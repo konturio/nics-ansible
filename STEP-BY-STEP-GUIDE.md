@@ -1,5 +1,3 @@
-# UNFINISHED
-
 # A Step-By-Step Guide to using the nics-ansible playbooks
 
 This guide will show you how to run the ansible dev-playbook for a development desktop/server on Ubuntu 18.04. This playbook will compile, install and configure NICS components for development.
