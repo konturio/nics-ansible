@@ -148,16 +148,12 @@
       - maven
       - build
 
-  - name: Add REACT_APP_API_URL to /etc/environment
-    ansible.builtin.lineinfile:
-      path: /etc/environment
-      line: "REACT_APP_API_URL=https://{{ nics_ui_fqdn }}/api/v1"
-    become: yes
-
   - name: Build nics-ui
-    shell: REACT_APP_API_URL=https://{{ nics_ui_fqdn }}/api/v1 npm install && npm run build
+    shell: npm install && npm run build
     args:
       chdir: "{{ nics_source_path }}/nics-ui/nics-ui"
+    environment:
+      REACT_APP_API_URL: "https://{{ nics_ui_fqdn }}/api/v1"
     become: no
     tags:
       - build

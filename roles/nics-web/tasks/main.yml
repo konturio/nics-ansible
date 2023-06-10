@@ -247,7 +247,7 @@
 - name: copy static files to /opt/nics/static/
   copy:
     src: "{{ nics_source_path }}/nics-ui/nics-ui/build/static/"
-    dest: /opt/nics/static/
+    dest: "{{ nics_home_directory }}/static"
     mode: '0755'
 
 - name: create nics-help-site folder
